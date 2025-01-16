@@ -60,8 +60,8 @@ navbar:
     title: read();
   - slug: schedule
     title: schedule();
-  - slug: learnings
-    title: learnings();
+  - slug: drafts
+    title: drafts();
 
 
 exclude: ["config.rb", "src", "Gemfile", "Gemfile.lock", "package.json","README.md", "Rakefile", 'vendor']
