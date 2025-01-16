@@ -8,7 +8,9 @@ permalink: /blog/
 
 <section class="post-list">
 {% for post in paginator.posts %}
-  {% include article.html %}
+  {% if post.is_draft == false %}
+    {% include article.html %}
+  {% endif %}
 {% endfor %}
 {% include pagination.html %}
 </section>

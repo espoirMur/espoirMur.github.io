@@ -7,7 +7,8 @@ comments: true
 description: "information retrieval on medical research papers about CORD-19 dataset part two"
 keywords: "Information Retrieval, Medical Research, Covid19, CORD-19 dataset"
 categories: 
-published: false
+published: true
+is_draft: true
 tags:
 
 ---

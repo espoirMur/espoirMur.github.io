@@ -8,6 +8,7 @@ canonical_url: https://www.murhabazi.com/ci-cd-deploy-to-aws-github-actions/
 cover_image: https://dev-to-uploads.s3.amazonaws.com/uploads/articles/192jcpsx4wzh9xolo178.jpeg
 series: Deploy a containerized python to AWS using Github Actions
 published: true
+is_draft: false
 description: Using the AWS python cdk to create an infrastructure on ECS. ECS, AWS CDK, and Github Actions.
 ---
 

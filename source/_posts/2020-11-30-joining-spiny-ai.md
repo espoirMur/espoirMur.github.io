@@ -6,6 +6,7 @@ comments: true
 categories: non-tech
 layout: post
 published: true
+is_draft: false
 ---
 
 After more than one year with countless job applications  and rejections, I am glad go announce you that I will be joining Spiny.ai as a Software Engineer !

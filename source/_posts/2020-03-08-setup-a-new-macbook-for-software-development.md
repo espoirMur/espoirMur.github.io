@@ -6,6 +6,7 @@ comments: true
 categories: non-tech
 layout: post
 published: true
+is_draft: false
 ---
 
 This guide helps to setup a new macbook and make it ready for software development.

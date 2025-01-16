@@ -20,7 +20,8 @@ pagination:
   enabled: true
   per_page: 4
   permalink: "/page/:num/"
-  sort_reverse:   true # this is the key to sort posts in reverse chronological order
+  sort_field: 'date'
+  sort_reverse: true
 
 comments: true
 

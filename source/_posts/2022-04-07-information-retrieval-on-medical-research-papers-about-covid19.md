@@ -8,6 +8,7 @@ description: "Information Retrieval on medical research papers about CORD-19 dat
 keywords: "Information Retrieval, Medical Research, Covid19, CORD-19 dataset"
 categories:
 published: true
+is_draft: false
 
 tags: python, information-retrieval, elastic-search, covid19, cord-19
 

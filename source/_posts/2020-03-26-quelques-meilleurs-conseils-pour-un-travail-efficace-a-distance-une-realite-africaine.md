@@ -6,6 +6,7 @@ layout: post
 comments: true
 categories: non-tech
 published: true
+is_draft: false
 ---
 
 {% include image.html name="cover_picture_bkv_home.jpg" %}

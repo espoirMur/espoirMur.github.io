@@ -7,6 +7,7 @@ comments: true
 categories: non-tech
 permalink: mots-d-un-grand-frere-a-ses-petits-frere-qui-debutent-avec-la-programmation
 published: true
+is_draft: false
 ---
 {% include image.html name="andela-guys.jpg" caption="cover" %}
 

@@ -6,6 +6,7 @@ layout: post
 comments: true
 categories: tech
 published: true
+is_draft: false
 ---
 
 ![Configurations](https://cdn.lynda.com/course/514200/514200-636141225565412095-16x9.jpg)

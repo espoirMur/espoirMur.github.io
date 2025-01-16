@@ -6,6 +6,7 @@ layout: post
 comments: true
 categories: tech
 published: true
+is_draft: false
 ---
 
 I have recently stumbled across [poetry](https://python-poetry.org/) new dependency management for python and decided to give it a try.

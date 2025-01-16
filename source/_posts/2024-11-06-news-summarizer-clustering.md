@@ -2,23 +2,19 @@
 layout: post
 title: "Clustering french news articles: A case of study of DRCongo news."
 permalink: news-summarizer-clustering
-date: 2030-11-06 22:31:32
+date: 2024-11-06 22:31:32
 comments: true
-description: "news-summarizer-clustering"
-keywords: ""
+description: "Learn how to build a french text clustering using embedding in python"
+keywords: "news summarizer, clustering, French news, DRCongo, machine learning, Python"
 categories:
-
-tags:
-
-published: "false"
+published: true
+is_draft: true
 ---
 
 
 ```python
 !which python
 ```
-
-# Congo News Summarizer : Part one, News Clustering
 
 
 Over the past month I have been collecting a lot of news article from major congolese news website. I have those article saved in a postgres database. There are lot of fun stuff I can do with them. Among them there is a news summarizer. I want to analyze the daily news and find out what are the main news the website are talking about.

@@ -4,7 +4,8 @@ title: "Mounting Oracle Cloud Storage as Volume in Containers with Kubernetes."
 permalink: mounting-oracle-cloud-storage-as-volume-in-containers-with-kubernetes
 date: 2024-06-19 13:20:27
 comments: true
-published: true 
+published: true
+is_draft: false 
 description: "Mounting Oracle Cloud Storage as Volume in Containers with Kubernetes."
 keywords: "Volumes, S3, Cloud-Storage, MLOPS, Kubernetes, Docker"
 categories:

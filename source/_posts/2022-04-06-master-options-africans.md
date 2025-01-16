@@ -8,6 +8,7 @@ description: "Master programs and scholarships for young Africans and Congolese 
 keywords: "master’s, Africa, academia, scholarship, master computer science Africa"
 categories: "non-tech"
 published: true
+is_draft: false
 ---
 
 {% include image.html name="cmu-africa-graduation.png" caption="CMU Africa Graduation ceremony class of 2019, I need someone to put the 🇨🇩 on that picture next time" %}

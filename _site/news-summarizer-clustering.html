@@ -32,8 +32,8 @@
 <meta property="og:title" content="Clustering french news articles: A case of study of DRCongo news." />
 <meta name="author" content="Murhabazi Buzina Espoir" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="news-summarizer-clustering" />
-<meta property="og:description" content="news-summarizer-clustering" />
+<meta name="description" content="Learn how to build a french text clustering using embedding in python" />
+<meta property="og:description" content="Learn how to build a french text clustering using embedding in python" />
 <link rel="canonical" href="http://localhost:4000/news-summarizer-clustering" />
 <meta property="og:url" content="http://localhost:4000/news-summarizer-clustering" />
 <meta property="og:site_name" content="Espoir Murhabazi ideas’ home" />
@@ -42,7 +42,7 @@
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Clustering french news articles: A case of study of DRCongo news." />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Murhabazi Buzina Espoir"},"dateModified":"2024-11-06T22:31:32+00:00","datePublished":"2024-11-06T22:31:32+00:00","description":"news-summarizer-clustering","headline":"Clustering french news articles: A case of study of DRCongo news.","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/news-summarizer-clustering"},"url":"http://localhost:4000/news-summarizer-clustering"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Murhabazi Buzina Espoir"},"dateModified":"2024-11-06T22:31:32+00:00","datePublished":"2024-11-06T22:31:32+00:00","description":"Learn how to build a french text clustering using embedding in python","headline":"Clustering french news articles: A case of study of DRCongo news.","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/news-summarizer-clustering"},"url":"http://localhost:4000/news-summarizer-clustering"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -90,9 +90,7 @@
       <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">!</span><span class="n">which</span> <span class="n">python</span>
 </code></pre></div></div>
 
-<h1 id="congo-news-summarizer--part-one-news-clustering">Congo News Summarizer : Part one, News Clustering</h1>
-
-<p>Over the past month I have been collecting a lot of news article from major congolese website news webisite. I have those article saved in a postgres database. There are lot of fun stuff I can do with them. Among them there is a news summarizer. I want to analyze the daily news and find out what are the main news the website are talking about.</p>
+<p>Over the past month I have been collecting a lot of news article from major congolese news website. I have those article saved in a postgres database. There are lot of fun stuff I can do with them. Among them there is a news summarizer. I want to analyze the daily news and find out what are the main news the website are talking about.</p>
 
 <p>In this blog or series of post I will try to build that news summarizer. As of now I will structure it as follow:</p>
 
@@ -409,7 +407,7 @@ With one cluster we have our dendrogram complete.</p>
 
 <p><strong>How do we compute similarity between clusters?</strong></p>
 
-<p>We have the notion between similarity between two points but how do we compute the similarity between a point and a cluster or between two clusters?
+<p>We have the notion of similarity between two points but how do we compute the similarity between a point and a cluster or between two clusters?
 The notion of similarity between two points can be extend to develop the notion of <code class="language-bash highlighter-rouge">linkage</code> which is how we evaluate the similarity between two groups of observation or clusters.
 Given two clusters A and, linkage metrics start by computing the pairwise  dissimilarity between the observations in cluster A and those in cluster B.</p>
 
@@ -511,12 +509,6 @@ Name: title, dtype: object
 </code></pre></div></div>
 
 <h3 id="selecting-the-cluster-labels-for-document">Selecting the cluster labels for document</h3>
-
-<p>If we pick a distance metric 
-from the linkage matrix we can return the label using a metric cut-off.</p>
-
-<p>How do we select the best metric cut-off to use for the clustering?
-We will use the silhouette score and the do the same approach we used with the K-mean. We will select the metric that gives us a high silhouette score.</p>
 
 <p>The <code class="language-bash highlighter-rouge">fcluster</code> function helps take a distance cutt-off and return the cluster label of each document the value of k as distance cutt off. So if we say k = 0.2, the function will give us the clustering of the document assuming that max distance of the document in a cluster is 0.2.</p>
 
@@ -666,7 +658,7 @@ We will use the silhouette score and the do the same approach we used with the K
 </ul>
 
     <p class="txt-medium-gray">
-      <small>&copy;2024 All rights reserved. Made with <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> and ♥</small>
+      <small>&copy;2025 All rights reserved. Made with <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> and ♥</small>
     </p>
   </div>
 </footer>

@@ -5,8 +5,7 @@ permalink: /about/
 ---
 I am an experienced Machine Learning Engineer. I specialized in Natural Language Processing and Information Retrieval. I am currently working as a Machine Learning Engineer with LLoyds Banking Group in London.
 
-I hold a Master of Science in Big Data and Text Analytics at the <a href="https://www.essex.ac.uk">  University of Essex</a>. Prior to that I completed my undergraduate degree in Genie Electrique et Informatique at the Université Libre des Pays de Grand Lacs in Goma(DRC) and I got my high school Diploma from College Alfajiri in Bukavu (Congo). 
-In 2021, I was awarded the [Chevening Scholarship](https://www.chevening.org/) by the UK Government's Foreign, Commonwealth and Development Office.
+I hold a Master of Science in Big Data and Text Analytics at the <a href="https://www.essex.ac.uk">  University of Essex</a>. Prior to that I completed my undergraduate degree in Genie Electrique et Informatique at the Université Libre des Pays de Grand Lacs in Goma(DRC) and I got my high school Diploma from College Alfajiri in Bukavu (Congo).
 
 I also enjoy helping young black engineers thrive in their careers, which is why my friends called me: <em>le grand frère de ses petits frères.</em> I am part of the <a href="https://www.masakhane.io/">Masakhane</a>, where I am working on NLP for African/Congolese Language. 
 

@@ -5,18 +5,494 @@
     <description>Murhabazi Buzina Espoir Home on the internet</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 08 Nov 2024 08:45:19 +0000</pubDate>
-    <lastBuildDate>Fri, 08 Nov 2024 08:45:19 +0000</lastBuildDate>
+    <pubDate>Thu, 16 Jan 2025 00:20:07 +0000</pubDate>
+    <lastBuildDate>Thu, 16 Jan 2025 00:20:07 +0000</lastBuildDate>
     <generator>Jekyll v4.2.2</generator>
+    
+      <item>
+        <title>Getting started with Flyte on Mac M1</title>
+        <description>&lt;p&gt;I have been looking for a pipeline ochestration platform that can run without the struggle of Kubernetes for a year but I have not been successful in my quest.
+I remember a few months ago I tried to build and install Kubeflow locally on my Mac M1 but I wasn’t successful. It was a hassle for me to run Mubeflow locally and build and deploy my pipeline.
+I started looking around for a lightweight pipeline orchestration tool that could run on a low resource environment like my local Macbook and in a production environment with a single machine and less than 8GB of RAM.
+This is how I came across flyte. In this post I will take you through my journey of running a pipeline with flyte locally with k3d on a Macbook.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-flyte&quot;&gt;What is Flyte&lt;/h2&gt;
+
+&lt;p&gt;Flyte is an open source orchestrator that makes it easy to build production-grade ML pipelines. It is written in Go and uses Kubernetes under the hood to run pipelines.
+In this post I will describe how I installed Flyte on my Macbook M1 and how I got my pipeline running. It was inspired by the &lt;a href=&quot;https://github.com/davidmirror-ops/flyte-the-hard-way/blob/main/docs/on-premises/single-node/002-single-node-onprem-install.md&quot;&gt;Flyte the hard way tutorial&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
+
+&lt;p&gt;This tutorial assumes that you have &lt;a href=&quot;https://www.docker.com/products/docker-desktop/&quot;&gt;docker desktop&lt;/a&gt; and &lt;a href=&quot;https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/&quot;&gt;Kubernetes&lt;/a&gt; installed on your machine.
+It will be divided into two parts, the first will set up the components needed to run flyte on Mac, and the second will build our first workflow using Flyte.
+Before we dive into the installation of flyte, we need to make sure that we have a Kubernetes cluster on our local environment.&lt;/p&gt;
+
+&lt;h2 id=&quot;installing-k3d-on-the-mac&quot;&gt;Installing K3d on the Mac&lt;/h2&gt;
+
+&lt;h3 id=&quot;what-is-k3d&quot;&gt;What is K3d?&lt;/h3&gt;
+
+&lt;p&gt;Before we dive into what &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;K3d&lt;/code&gt; is, let us understand what &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;K3s&lt;/code&gt; is.
+K3s is a production-ready and easy-to-install lightweight version of Kubernetes. It is easy to install and packs Kubernetes and other components into a single, simple launcher. It is one of the recommended ways to run Kubernetes in a low resource environment. K3s is a great tool and runs in a Linux based environment, unfortunately it doesn’t support Mac Os and M1 CPU. This is why &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;k3d&lt;/code&gt; exists. K3d is a wrapper to run &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;k3s&lt;/code&gt; in Docker. It has the same advantages as &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;k3s&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;installing-k3d&quot;&gt;Installing K3d&lt;/h3&gt;
+
+&lt;p&gt;Install the environment with the following command:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;wget &lt;span class=&quot;nt&quot;&gt;-q&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-O&lt;/span&gt; - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Whichever command you use will install &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;k3d&lt;/code&gt; on your cluster, once you have installed it you are ready to go.
+See the following &lt;a href=&quot;https://k3d.io/stable/#install-script&quot;&gt;page&lt;/a&gt; for more information on how to install &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;k3d&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;cluster-creation&quot;&gt;Cluster Creation&lt;/h3&gt;
+&lt;p&gt;Before creating the cluster, I run the following command locally&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;span class=&quot;nb&quot;&gt;mkdir &lt;/span&gt;k3data&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;This will create a folder that will be used to store our cluster data.
+To create the cluster, run the following command:&lt;/p&gt;
+
+&lt;p&gt;` k3d cluster create flyte-cluster -v $PWD/k3data:/data`.&lt;/p&gt;
+
+&lt;p&gt;This will create a cluster named &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;flyte-cluster&lt;/code&gt; and share the mount of the volume. By mounting the volume, it shares all the items we have in the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;/data&lt;/code&gt; folder in the cluster with the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;k3data&lt;/code&gt; folder on our local machine.&lt;/p&gt;
+
+&lt;p&gt;If all goes well, you should be able to see your cluster when you run&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;k3d cluster list&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+NAME SERVERS AGENTS LOADBALANCER
+
+flyte-cluster 1/1 0/0 &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;With our k3d cluster installed, we can now create the flyte deployment.&lt;/p&gt;
+
+&lt;h2 id=&quot;flyte-dependencies&quot;&gt;Flyte Dependencies&lt;/h2&gt;
+
+&lt;p&gt;A Flyte cluster depends on two main dependencies:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;em&gt;A relational database&lt;/em&gt;:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This stores task status, execution option and all other task metadata.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;em&gt;An S3-compatible object store&lt;/em&gt;:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This stores task metadata and data processed by workflows.&lt;/p&gt;
+
+&lt;h2 id=&quot;minio&quot;&gt;Minio&lt;/h2&gt;
+&lt;p&gt;Minio is an S3-compatible object that is installed using a Kubernetes service.
+To install Minio, create a file in the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;flyte-k3d&lt;/code&gt; directory and name it &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;minio.yaml&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v1&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Namespace&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+&lt;span class=&quot;nn&quot;&gt;---&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;PersistentVolume&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v1&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio-pv&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;namespace&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;storageClassName&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;hostpath&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;capacity&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;storage&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;25Gi&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;accessModes&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;ReadWriteOnce&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;hostPath&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/data&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;claimRef&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio-pvc&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;namespace&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+&lt;span class=&quot;nn&quot;&gt;---&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v1&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;PersistentVolumeClaim&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio-pvc&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;namespace&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;storageClassName&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;hostpath&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;accessModes&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;ReadWriteOnce&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;resources&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;storage&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;20Gi&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;volumeName&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio-pv&lt;/span&gt;
+&lt;span class=&quot;nn&quot;&gt;---&lt;/span&gt; 
+
+&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;apps/v1&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Deployment&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;# This name uniquely identifies the Deployment&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;namespace&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;app.kubernetes.io/name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;replicas&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;matchLabels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;app.kubernetes.io/name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;strategy&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Recreate&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# Label is used as selector in the service.&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;app.kubernetes.io/name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# Pulls the default Minio image from Docker Hub&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;image&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;docker.io/bitnami/minio:2024&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;imagePullPolicy&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;IfNotPresent&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# Minio access key and secret key&lt;/span&gt;
+          &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;MINIO_ROOT_USER&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt; 
+          &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;MINIO_ROOT_PASSWORD&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;miniostorage&lt;/span&gt;
+          &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;MINIO_DEFAULT_BUCKETS&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+          &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;MINIO_DATA_DIR&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;/data&quot;&lt;/span&gt;
+          &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;MINIO_BROWSER_LOGIN_ANIMATION&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;off'&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;containerPort&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;9000&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;containerPort&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;9001&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio-console&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# Mount the volume into the pod&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;resources&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; 
+          &lt;span class=&quot;na&quot;&gt;limits&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;cpu&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;200m&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;memory&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;512Mi&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;cpu&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;10m&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;memory&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;128Mi&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;volumeMounts&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;minio-storage&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# must match the volume name, above&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;mountPath&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;/data&quot;&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;volumes&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio-storage&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;persistentVolumeClaim&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;claimName&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio-pvc&lt;/span&gt;
+&lt;span class=&quot;nn&quot;&gt;---&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v1&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Service&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;namespace&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;app.kubernetes.io/name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;NodePort&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;nodePort&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;30084&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;9000&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;protocol&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;TCP&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;targetPort&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+  &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio-console&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;nodePort&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;30088&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;9001&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;protocol&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;TCP&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;targetPort&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio-console&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;app.kubernetes.io/name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Running &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl apply &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; flyte-k3d/minio.yaml&lt;/code&gt; will create the following components:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;A namespace called flyte, which will contain all deployments related to flyte.&lt;/li&gt;
+  &lt;li&gt;A persistent volume and a persistent volume claim (PVC): These two objects will help us to use storage in our service. Note that for the persistent volume we specified the hostpath to be &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;/data&lt;/code&gt;, it is the path where we mount our volume in the cluster.&lt;/li&gt;
+  &lt;li&gt;The minio deployment, which is an object that will define the pod and how we will run our object storage.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In this deployment we have created a volume mount that will use our persistent volume claim and mount the storage to &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;/data&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;a-note-on-storage&quot;&gt;A note on storage&lt;/h3&gt;
+
+&lt;p&gt;When creating the cluster, we mounted the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;k3data&lt;/code&gt; folder into the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;/data&lt;/code&gt; kubernetes cluster. Then with the service and the Pv, we mount the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;/data&lt;/code&gt; folder in our cluster to &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;/data&lt;/code&gt; in our minio pod.&lt;/p&gt;
+
+&lt;p&gt;IMAGE ON STORAGE HERE&lt;/p&gt;
+
+&lt;p&gt;With the volume mount set up this way, if we delete a pod, the pod data will be backed up to the k3data folder. Each time we rebuild the service with the same setup, we will be able to restore the data from our last run.&lt;/p&gt;
+
+&lt;p&gt;PS: Note that we have hardcoded the PASSWORD in our environment. This is not good practice for a production environment, we should use secrets for the password.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The service, will allow an external service to interact with minio. It exposes the two minio ports, the console port on 9001 and the main port on 9000.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To test if the installation is running, you can run: &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl get pods &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; flyte&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;accessing-the-minio-storage&quot;&gt;Accessing the Minio Storage&lt;/h3&gt;
+
+&lt;p&gt;This will show the status of the running minio server.&lt;/p&gt;
+
+&lt;p&gt;To access the minio UI, you will need to do a port forwarding to redirect anything running on port 9001. You can do this by running this in a console terminal.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; flyte port-forward &lt;span class=&quot;nt&quot;&gt;--address&lt;/span&gt; 127.0.0.1 &lt;span class=&quot;nt&quot;&gt;--address&lt;/span&gt; ::1 service/minio 9001:9001&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;And in another console terminal, run:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; flyte port-forward &lt;span class=&quot;nt&quot;&gt;--address&lt;/span&gt; 127.0.0.1 &lt;span class=&quot;nt&quot;&gt;--address&lt;/span&gt; ::1 service/minio 9000:9000&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;With these two commands you can access the minio server in the browser at localhost:9000.
+Once we have installed the minio server, we can do the same to install the postgres database.&lt;/p&gt;
+
+&lt;p&gt;PUT The image of the server here&lt;/p&gt;
+
+&lt;h2 id=&quot;postgres&quot;&gt;Postgres&lt;/h2&gt;
+
+&lt;p&gt;It uses similar components to minio server, the pv, the pvc, the service and the deployment.&lt;/p&gt;
+
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v1&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;PersistentVolumeClaim&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgresql-pvc&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;namespace&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;accessModes&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;ReadWriteOnce&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;resources&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;storage&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;10Gi&lt;/span&gt;
+&lt;span class=&quot;nn&quot;&gt;---&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v1&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Service&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;namespace&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;app.kubernetes.io/name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;NodePort&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;5432&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;nodePort&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;30089&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;protocol&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;TCP&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;targetPort&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;app.kubernetes.io/name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt;
+  
+&lt;span class=&quot;nn&quot;&gt;---&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;apps/v1&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Deployment&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;namespace&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; 
+    &lt;span class=&quot;na&quot;&gt;app.kubernetes.io/name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;replicas&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;matchLabels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; 
+      &lt;span class=&quot;na&quot;&gt;app.kubernetes.io/name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; 
+        &lt;span class=&quot;na&quot;&gt;app.kubernetes.io/name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;image&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;ecr.flyte.org/ubuntu/postgres:13-21.04_beta&quot;&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;imagePullPolicy&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;IfNotPresent&quot;&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;POSTGRES_PASSWORD&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#Change it to a different value if needed&lt;/span&gt;
+        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;POSTGRES_USER&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;POSTGRES_DB&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;containerPort&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;5432&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;resources&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; 
+          &lt;span class=&quot;na&quot;&gt;limits&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;cpu&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;1000m&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;memory&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;512Mi&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;cpu&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;10m&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;memory&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;128Mi&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;volumeMounts&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres-storage&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;mountPath&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/var/lib/postgresql/data&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;volumes&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres-storage&lt;/span&gt;
+          &lt;span class=&quot;na&quot;&gt;persistentVolumeClaim&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;na&quot;&gt;claimName&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgresql-pvc&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This code creates a pod that will run the postgres database instance.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl apply &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; flyte-k3d/postgres.yaml &lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;You can use &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl get pods &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; flyte&lt;/code&gt; to make sure that all pods associated with flyte are running.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+NAME READY STATUS RESTARTS AGE
+
+minio-6bfbc8fd5c-rp72r 1/1 Running 0 25h
+
+postgres-7dc7747447-wtgf7 1/1 Running 0 25h
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Having installed the postgres database and the minio object store, we now need to install Flyte.&lt;/p&gt;
+
+&lt;h2 id=&quot;flyte&quot;&gt;Flyte&lt;/h2&gt;
+
+&lt;h3 id=&quot;flyte-architecture&quot;&gt;Flyte Architecture.&lt;/h3&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-01-15-getting-started-with-flyte-on-mac-m1/flyte-architecture.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Flyte Architecture&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;A Flyte deployment is made up of several components grouped into 3 categories: The user plane, the control plane and the data plane.&lt;/p&gt;
+
+&lt;p&gt;You can learn more about the architecture and those components &lt;a href=&quot;https://github.com/flyteorg/flyte/blob/master/docs/user_guide/concepts/component_architecture/index.rst&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;With this architecture, flyte have made our job easier by giving us two ways to install the flyte. We can install it as a single binary or as core.&lt;/p&gt;
+
+&lt;p&gt;Single binary installs all Flyte components in a single pod. This setup is useful for environments with limited resources and a need for quick setup. With core, all components come as standalone pods and sometimes with replicas. For our use case, as you may have guessed, we will install flyte as a single binary.&lt;/p&gt;
+
+&lt;h2 id=&quot;installing&quot;&gt;Installing&lt;/h2&gt;
+
+&lt;p&gt;To avoid storing the DB password in clear text in the values file, we use a feature of the flyte binary chart that allows us to consume pre-created secrets.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl create &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; flyte-k3d/local-secrets.yaml&lt;/code&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;update-the-helm-values&quot;&gt;Update the Helm Values&lt;/h3&gt;
+
+&lt;p&gt;We will install flyte using flyte binary helm chart. That chart has the placeholder for database and cloud storage configuration.&lt;/p&gt;
+
+&lt;p&gt;Here is how those values look like:&lt;/p&gt;
+
+&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;configuration&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;database&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;postgres.flyte.svc.cluster.local&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;dbname&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;storage&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;minio&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;metadataContainer&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#This is the default bucket created with Minio. Controlled by the MINIO_DEFAULT_BUCKETS env var in the local-flyte-resources.yaml manifest&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;userDataContainer&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;provider&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;s3&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;providerConfig&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;s3&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;authType&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;accesskey&quot;&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;endpoint&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;http://minio.flyte.svc.cluster.local:9000&quot;&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;accessKey&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;minio&quot;&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;secretKey&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;miniostorage&quot;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#If you need to change this parameters, refer to the local-flyte-resources.yaml manifest and adjust the MINIO_ROOT_PASSWORD env var&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;disableSSL&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;true&quot;&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;secure&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;false&quot;&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;v2Signing&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;true&quot;&lt;/span&gt;
+
+  &lt;span class=&quot;na&quot;&gt;inlineSecretRef&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;flyte-binary-inline-config-secret&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;inline&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;na&quot;&gt;plugins&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;k8s&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;inject-finalizer&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;true&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;default-env-vars&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+          &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;FLYTE_AWS_ENDPOINT&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;http://minio.flyte.svc.cluster.local:9000&quot;&lt;/span&gt;
+          &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;FLYTE_AWS_ACCESS_KEY_ID&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;minio&quot;&lt;/span&gt;
+          &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;FLYTE_AWS_SECRET_ACCESS_KEY&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;miniostorage&quot;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#Use the same value as the MINIO_ROOT_PASSWORD&lt;/span&gt;
+
+    &lt;span class=&quot;na&quot;&gt;task_resources&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;defaults&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;cpu&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;100m&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;memory&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;500Mi&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#change default requested resources and limits to fit your needs&lt;/span&gt;
+      &lt;span class=&quot;na&quot;&gt;limits&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;na&quot;&gt;memory&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;2Gi&lt;/span&gt;
+
+&lt;span class=&quot;na&quot;&gt;serviceAccount&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;true&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;With those values, we can now create our flyte binary pod.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;helm &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;flyte-binary flyteorg/flyte-binary &lt;span class=&quot;nt&quot;&gt;--values&lt;/span&gt; flyte-k3d/onprem-flyte-binary-values.yaml &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; flyte&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;This will create a flyte binary pod, it comes with two separate services: &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;A grpc service&lt;/code&gt; and a &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;http service.&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Once the helm chart is installed we can access it, we can create a two port forwarding session.&lt;/p&gt;
+
+&lt;p&gt;One for the http and one for the grpc.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; flyte port-forward service/flyte-binary-grpc 8089:8089&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; flyte port-forward service/flyte-binary-http 8088:8088&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;The http session gives us access to the flyte console UI. From this UI we can manage and trigger our workflows.&lt;/p&gt;
+
+&lt;p&gt;We will submit workflows via the Grpc UI.&lt;/p&gt;
+
+&lt;h4 id=&quot;configuring-flyte&quot;&gt;Configuring Flyte&lt;/h4&gt;
+
+&lt;p&gt;To set up the Flyte connection, we need to install the flytectl locally and generate a config.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;pip &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-U&lt;/span&gt; flytekit&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Will install Flytekit locally.&lt;/p&gt;
+
+&lt;p&gt;Once that is installed you can run:&lt;/p&gt;
+
+&lt;p&gt;` flytectl config init` to create the config file. Inside that config file add the following:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+admin:
+
+&lt;span class=&quot;c&quot;&gt;# For GRPC endpoints you might want to use dns:///flyte.myexample.com&lt;/span&gt;
+
+endpoint: localhost:8089
+
+authType: Pkce
+
+insecure: &lt;span class=&quot;nb&quot;&gt;true
+
+&lt;/span&gt;logger:
+
+show-source: &lt;span class=&quot;nb&quot;&gt;true
+
+&lt;/span&gt;level: 6
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;an-update-on-config&quot;&gt;An update on config&lt;/h3&gt;
+
+&lt;p&gt;For some reason to make the flyte application to connect to local storage, you need to update your host file with the following files:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;vi /etc/hosts&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;127.0.0.1 minio.flyte.svc.cluster.local &lt;/code&gt;&lt;/p&gt;
+</description>
+        <pubDate>Wed, 15 Jan 2025 22:23:57 +0000</pubDate>
+        <link>http://localhost:4000/getting-started-with-flyte-on-mac-m1</link>
+        <guid isPermaLink="true">http://localhost:4000/getting-started-with-flyte-on-mac-m1</guid>
+        
+        
+      </item>
     
       <item>
         <title>Clustering french news articles: A case of study of DRCongo news.</title>
         <description>&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;err&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;which&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;python&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;h1 id=&quot;congo-news-summarizer--part-one-news-clustering&quot;&gt;Congo News Summarizer : Part one, News Clustering&lt;/h1&gt;
-
-&lt;p&gt;Over the past month I have been collecting a lot of news article from major congolese website news webisite. I have those article saved in a postgres database. There are lot of fun stuff I can do with them. Among them there is a news summarizer. I want to analyze the daily news and find out what are the main news the website are talking about.&lt;/p&gt;
+&lt;p&gt;Over the past month I have been collecting a lot of news article from major congolese news website. I have those article saved in a postgres database. There are lot of fun stuff I can do with them. Among them there is a news summarizer. I want to analyze the daily news and find out what are the main news the website are talking about.&lt;/p&gt;
 
 &lt;p&gt;In this blog or series of post I will try to build that news summarizer. As of now I will structure it as follow:&lt;/p&gt;
 
@@ -333,7 +809,7 @@ With one cluster we have our dendrogram complete.&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;How do we compute similarity between clusters?&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;We have the notion between similarity between two points but how do we compute the similarity between a point and a cluster or between two clusters?
+&lt;p&gt;We have the notion of similarity between two points but how do we compute the similarity between a point and a cluster or between two clusters?
 The notion of similarity between two points can be extend to develop the notion of &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;linkage&lt;/code&gt; which is how we evaluate the similarity between two groups of observation or clusters.
 Given two clusters A and, linkage metrics start by computing the pairwise  dissimilarity between the observations in cluster A and those in cluster B.&lt;/p&gt;
 
@@ -435,12 +911,6 @@ Name: title, dtype: object
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;h3 id=&quot;selecting-the-cluster-labels-for-document&quot;&gt;Selecting the cluster labels for document&lt;/h3&gt;
-
-&lt;p&gt;If we pick a distance metric 
-from the linkage matrix we can return the label using a metric cut-off.&lt;/p&gt;
-
-&lt;p&gt;How do we select the best metric cut-off to use for the clustering?
-We will use the silhouette score and the do the same approach we used with the K-mean. We will select the metric that gives us a high silhouette score.&lt;/p&gt;
 
 &lt;p&gt;The &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;fcluster&lt;/code&gt; function helps take a distance cutt-off and return the cluster label of each document the value of k as distance cutt off. So if we say k = 0.2, the function will give us the clustering of the document assuming that max distance of the document in a cluster is 0.2.&lt;/p&gt;
 
@@ -2424,6 +2894,567 @@ abstract Sars-Cov-2 or Novel coronavirus infection &lt;span class=&quot;o&quot;&
       </item>
     
       <item>
+        <title>Information retrieval on CORD-19 papers about COVID-19 Part 2: Information Retrieval Using Elasticsearch</title>
+        <description>
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2022-04-06-information-retrieval-on-medical-research-papers-about-covid19-part-two/document-indexing-elastic-search.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Document Indexing With Elastic Search&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;In part one of this tutorial, we cleaned our dataset and searched using TF-IDF similarity. 
+In this part, we will learn how to add our documents in Elastic-search, index them, and query our index. By the end of this second part of this series, you should have a complete working system you can use to make queries to Elasticsearch.&lt;/p&gt;
+
+&lt;p&gt;To run this second part, make sure you have :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Make sure to have the dataset with cleaned abstract&lt;/li&gt;
+  &lt;li&gt;A mapping of the document pub medical id and the keyword for each document.&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Elasticsearch is installed and running in your system; if you don’t have it installed, you can follow &lt;a href=&quot;https://www.elastic.co/guide/en/elasticsearch/reference/current/install-elasticsearch.html&quot;&gt;this tutorial&lt;/a&gt; to install it in your system.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;You should also have the &lt;a href=&quot;https://github.com/elastic/elasticsearch-dsl-py&quot;&gt;elasticsearch-dsl libray&lt;/a&gt; installed in your python environment; it will help us to run our queries and interact with the Elasticsearch database.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;different-ways-to-interact-with-elasticsearch&quot;&gt;Different ways to interact with Elasticsearch&lt;/h3&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2022-04-06-information-retrieval-on-medical-research-papers-about-covid19-part-two/rest-protocol.jpeg&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Rest protocol&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;In this section, we will discuss different ways to interact with Elasticsearch, and at the end, we will confirm if we can connect to it from our machine.&lt;/p&gt;
+
+&lt;p&gt;In the literature, there are different ways to interact with the Elasticsearch database, but in general, any tools that can help you to make an HTTP request with a JSON body can do the job.&lt;/p&gt;
+
+&lt;p&gt;The most important part of this is understanding how the interaction is done and that we are good to go. The tool we are using to make the request is pint-size.
+In general, the interaction with Elasticsearch is done via an HTTP request.
+In the literature, there are different ways to interact with the Elasticsearch database, but in general, any tools that can help you to make an HTTP request with a JSON body can do the job.&lt;/p&gt;
+
+&lt;p&gt;Among the tools you will find out there there are :&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Kibana: I have never used it before, but it looks like a dashboard that can help you make your request, format your JSON data and visualize your data.&lt;/li&gt;
+  &lt;li&gt;Since we are making requests, you can use the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;curl&lt;/code&gt; command from Linux to interact with Elasticsearch via the command line.&lt;/li&gt;
+  &lt;li&gt;Postman: For those who have worked and tested Restful APIs before, this tool can come to your rescue.&lt;/li&gt;
+  &lt;li&gt;Any low-level library from a programming language that can help make HTTP requests. In this category comes the &lt;a href=&quot;https://elasticsearch-py.readthedocs.io/en/v7.17.1/api.html#indices&quot;&gt;python-elasticsearch&lt;/a&gt; package. 
+A far high-level library built on top of the low-level library offers a far more convenient way to connect with Elasticsearch.
+I prefer this because of my software engineering background and since I have worked with Object Relational Mapping before. 
+ This library is similar to a Relational Object Framework because it provides an optional wrapper for working with documents as Python objects: defining mappings, retrieving and saving documents, wrapping the document data in user-defined classes.
+ Just like SQL Alchemy if you are familiar with ORM in python. For the rest of the tutorial, we will be using this high-level library to interact with Elasticsearch. In some other circumstances, we will use the low-level API.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To check if Elasticsearch is installed and working, we can run the following code in your command line:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;curl &lt;span class=&quot;nt&quot;&gt;--location&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--request&lt;/span&gt; GET &lt;span class=&quot;s1&quot;&gt;'localhost:9200'&lt;/span&gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;If everything is running and installed, you should see the following output.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-JSON&quot;&gt;{
+ &quot;name&quot; : &quot;your-local-macadress.local&quot;,
+ &quot;cluster_name&quot; : &quot;elasticsearch_es.py&quot;,
+ &quot;cluster_uuid&quot; : &quot;t__AU_HQTtiUSsI-wEe_Gw&quot;,
+ &quot;version&quot; : {
+ &quot;number&quot; : &quot;7.16.3&quot;,
+ &quot;build_flavor&quot; : &quot;default&quot;,
+ &quot;build_type&quot; : &quot;tar&quot;,
+ &quot;build_hash&quot; : &quot;4e6e4eab2297e949ec994e688dad46290d018022&quot;,
+ &quot;build_date&quot; : &quot;2022-01-06T23:43:02.825887787Z&quot;,
+ &quot;build_snapshot&quot; : false,
+ &quot;lucene_version&quot; : &quot;8.10.1&quot;,
+ &quot;minimum_wire_compatibility_version&quot; : &quot;6.8.0&quot;,
+ &quot;minimum_index_compatibility_version&quot; : &quot;6.0.0-beta1&quot;
+ },
+ &quot;tagline&quot;: &quot;You Know, for Search.&quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If you are getting any errors, check if your installation was successful or google the error message. I am sure you can find an answer from the first google search response.&lt;/p&gt;
+
+&lt;p&gt;With our Elasticsearch running, let us build the model to handle our data.&lt;/p&gt;
+
+&lt;h3 id=&quot;building-the-document-model&quot;&gt;Building the Document Model.&lt;/h3&gt;
+
+&lt;p&gt;Let’s recall a model from an ORM perspective. 
+A model is mapping a class in a programming language to a table in a Query language. 
+The exact definition is valid for Elasticsearch. In this case, a model is a mapping of a class in python to an index in elastic search.&lt;/p&gt;
+
+&lt;h4 id=&quot;analyzer&quot;&gt;Analyzer&lt;/h4&gt;
+
+&lt;p&gt;An analyzer is a function used to preprocess the text when it is saved to Elasticsearch or querying a field in elastic search.&lt;/p&gt;
+
+&lt;p&gt;It contains three lower-level building blocks: &lt;em&gt;character filters&lt;/em&gt;, &lt;em&gt;tokenizers&lt;/em&gt;, and &lt;em&gt;token filters&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;This can help preprocess the text as we did in the first section but on the Elasticsearch level.&lt;/p&gt;
+
+&lt;p&gt;I am not sure if we need an analyzer after preprocessing our text with python but let us do it again for the demonstration process.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt;  &lt;span class=&quot;nn&quot;&gt;elasticsearch_dsl&lt;/span&gt;  &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;analyzer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;connections&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;article_analyzer&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;analyzer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'analyzer'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                              &lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'trigram'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;'nGram'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;min_gram&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;max_gram&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+                              &lt;span class=&quot;n&quot;&gt;stopwords&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'_english_'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'lowercase'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;&quot;asciifolding&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can see this analyzer anyttime we are applying it to a field in our index it will remove english stopwords , filter ngrams and only keep bigrams and trigrams , and remove non ascii characters.&lt;/p&gt;
+
+&lt;p&gt;A lot have been done already on the preprocessing text, but we could also do the stemmming and all the cleaning process direcly via the analyzer in ElasticSearch.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;connections&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create_connection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hosts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'localhost'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;Elasticsearch&lt;span class=&quot;o&quot;&gt;([{&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'host'&lt;/span&gt;: &lt;span class=&quot;s1&quot;&gt;'localhost'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;}])&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt;  &lt;span class=&quot;nn&quot;&gt;elasticsearch_dsl&lt;/span&gt;  &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;Document&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Date&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Keyword&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;connections&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AttrList&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Nested&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InnerDoc&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;elasticsearch.helpers&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bulk&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt;  &lt;span class=&quot;nc&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Document&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;title&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;analyzer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;article_analyzer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;term_vector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;with_positions_offsets_payloads&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;abstract&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;analyzer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;article_analyzer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;term_vector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;with_positions_offsets_payloads&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;store&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Keyword&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;multi&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;publish_time&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Date&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;authors&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Keyword&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;multi&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    
+    &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt;  &lt;span class=&quot;nc&quot;&gt;Index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;'covid19'&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;settings&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;number_of_shards&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;mapping&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;total_fields&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;limit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;10000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}}&lt;/span&gt;
+    
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;add_tag&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tag&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tag&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;save&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;**&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kwargs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;save&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;**&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kwargs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    
+    &lt;span class=&quot;o&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;classmethod&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;bulk_save&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataframe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;document_tfidf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+        this should take a dataframe and save all it content to elasticsearch 
+        &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;articles&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;row&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataframe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iterrows&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;tags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;document_tfidf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;article&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cls&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;meta&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'id'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt; 
+                          &lt;span class=&quot;n&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'title'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; 
+                          &lt;span class=&quot;n&quot;&gt;abstract&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'abstract_cleaned'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; 
+                          &lt;span class=&quot;n&quot;&gt;publish_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'publish_time'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; 
+                          &lt;span class=&quot;n&quot;&gt;authors&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'authors'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tag&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_tag&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tag&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;articles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to_dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;include_meta&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;articles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;connections&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_connection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;bulk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;articles&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;request_timeout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;120&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;done saving for the {}th batch&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This will be our model , let us add the attribute to it :&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;title &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; Text&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;analyzer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;article_analyzer&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;The above line creates the title and adds the analyzer to it. We also specify the data type and say that it is a text.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;abstract &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; Text&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;analyzer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;article_analyzer&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;The same applies to the abstract.&lt;/p&gt;
+
+&lt;p&gt;For the next attribute the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;tags &lt;/code&gt; we have the following :&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;tags &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; Keyword&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;multi&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;True&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;This says that it is a keyword and can have a list of values hence the parameter multi.&lt;/p&gt;
+
+&lt;p&gt;To save the publish date of an article, we have the following :&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;publish_time &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; Date&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;It says that our publishing time is a date.&lt;/p&gt;
+
+&lt;p&gt;To save the article’s authors, we use the same approach as for the tags.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;authors &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; Keyword&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;multi&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;True&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;With all our fields declared, let’s move to the configuration for the class.&lt;/p&gt;
+
+&lt;p&gt;This is done by adding a metadata class.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'covid19'&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;settings&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;number_of_shards&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;mapping&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;total_fields&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;limit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This specifies the index name to use and other configuration settings.&lt;/p&gt;
+
+&lt;p&gt;Next, we need a method to save our articles :&lt;/p&gt;
+
+&lt;p&gt;Next, we have a &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;bulk_save&lt;/code&gt; method, and this will take our dataframe, the mapping of an article, and keyword and loop over it and save the article in a batch of 100 in our index.&lt;/p&gt;
+
+&lt;p&gt;This is not the best optimal way to do this; I am sure I will be looking for a faster way to do this using Elastisearch and dask.&lt;/p&gt;
+
+&lt;p&gt;With our model defined, and utility methods described, we can create the index in the database.&lt;/p&gt;
+
+&lt;p&gt;Before we first use the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;Article&lt;/code&gt; document type, we need to create the mappings in Elasticsearch. For that, we can either use the &lt;a href=&quot;https://elasticsearch-dsl.readthedocs.io/en/latest/persistence.html#index&quot;&gt;Index&lt;/a&gt; object or make the mappings directly by calling the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;init&lt;/code&gt; class method:&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;elasticsearch_dsl&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Index&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;old_index&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'covid19'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;old_index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;delete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;except&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Exception&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;pass&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;n&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;None
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The above code will create the index, it is similar to running the migration when we are working with object relational mappers.&lt;/p&gt;
+
+&lt;p&gt;If there was no index named covid19 in our database , it will create the index for us.&lt;/p&gt;
+
+&lt;p&gt;If the index exist it will throw an error we will have to delete the index manualy and rerun the line.&lt;/p&gt;
+
+&lt;p&gt;To delete the index , run the following command in your cmd:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;curl &lt;span class=&quot;nt&quot;&gt;--location&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--request&lt;/span&gt; DELETE &lt;span class=&quot;s1&quot;&gt;'localhost:9200/covid19'&lt;/span&gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;If everything goes well we should have our index structured in the database. To check if the index is there and the mapping are done correctly , run the following command :&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;curl &lt;span class=&quot;nt&quot;&gt;--location&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--request&lt;/span&gt; GET &lt;span class=&quot;s1&quot;&gt;'localhost:9200/covid19/_mapping'&lt;/span&gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;This will return the mapping if everything was done correctly .&lt;/p&gt;
+
+&lt;div class=&quot;language-json highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;covid19&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;mappings&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+            &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;properties&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;abstract&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;text&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;analyzer&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;analyzer&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;authors&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;keyword&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;publish_time&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;date&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;tags&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;keyword&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;title&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;text&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                    &lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;analyzer&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;analyzer&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+                &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+            &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Let us run the code to save our dataset in the index :&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;Article&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bulk_save&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_df&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;document_tfidf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;done &lt;/span&gt;saving &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the 0th batch
+&lt;span class=&quot;k&quot;&gt;done &lt;/span&gt;saving &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the 100th batch
+&lt;span class=&quot;k&quot;&gt;done &lt;/span&gt;saving &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the 200th batch
+&lt;span class=&quot;k&quot;&gt;done &lt;/span&gt;saving &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the 300th batch
+&lt;span class=&quot;k&quot;&gt;done &lt;/span&gt;saving &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the 400th batch
+&lt;span class=&quot;k&quot;&gt;done &lt;/span&gt;saving &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the 500th batch
+&lt;span class=&quot;k&quot;&gt;done &lt;/span&gt;saving &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the 600th batch
+&lt;span class=&quot;k&quot;&gt;done &lt;/span&gt;saving &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the 700th batch
+&lt;span class=&quot;k&quot;&gt;done &lt;/span&gt;saving &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the 800th batch
+&lt;span class=&quot;k&quot;&gt;done &lt;/span&gt;saving &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the 900th batch
+&lt;span class=&quot;k&quot;&gt;done &lt;/span&gt;saving &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the 1000th batch
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This will go over our dataframe and save each document in our index.&lt;/p&gt;
+
+&lt;p&gt;It can take sometime but once it is done we will have our document indexed in elasticsearch.&lt;/p&gt;
+
+&lt;p&gt;We can now move to the final section of this serie , querying .&lt;/p&gt;
+
+&lt;h3 id=&quot;querying&quot;&gt;Querying&lt;/h3&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2022-04-06-information-retrieval-on-medical-research-papers-about-covid19-part-two/query-processing-elastic-search.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Querying With ElasticSearch&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;For the querying part of this tutorial we will run two differents types of queries , the text search and keyword search.&lt;/p&gt;
+
+&lt;h4 id=&quot;text-search&quot;&gt;Text Search&lt;/h4&gt;
+
+&lt;p&gt;The text search will perform direct search in the abstract of a search , it will try to find abstract that matches our text query. Let see how we can do that in elasticsearch.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt;  &lt;span class=&quot;nn&quot;&gt;elasticsearch_dsl&lt;/span&gt;  &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;Search&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt;  &lt;span class=&quot;nn&quot;&gt;elasticsearch_dsl&lt;/span&gt;  &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;Q&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;connection&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;connections&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_connection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;search&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;Search&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;using&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;connection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'covid19'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;Q&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;multi_match&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;preprocess_text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'are monkey responsible of ebola'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;fields&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'title'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;'abstract'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;search&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;To process the response we will use the following :&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;hit&lt;/span&gt;  &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;meta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;score&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;hit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+	&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;'-'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;45.725304 Potential &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;broad-scale transmission of Ebola virus disease during the West Africa crisis: lessons &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;the Global Health security agenda
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+44.993748 One Health: Zoonoses &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;the Exotic Animal Practice
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+42.261215 SARS-CoV-2 Aerosol Exhaled by Experimentally Infected Cynomolgus Monkeys
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+40.333527 Controlling Ebola: what we can learn from China&lt;span class=&quot;s1&quot;&gt;'s 1911 battle against the pneumonic plague in Manchuria
+----------
+37.900352 Emergency response vaccines: lessons learned in response to communicable diseases.
+----------
+36.51764 Species-Specific Evolution of Ebola Virus during Replication in Human and Bat Cells
+----------
+36.44274 A pilot survey of the U.S. medical waste industry to determine training needs for safely handling highly infectious waste
+----------
+35.545017 Molecular Hydrogen as a Novel Antitumor Agent: Possible Mechanisms Underlying Gene Expression
+----------
+34.979034 Applying lessons from the Ebola vaccine experience for SARS-CoV-2 and other epidemic pathogens.
+----------
+33.92034 Sexual transmission and the probability of an end of the Ebola virus disease epidemic
+----------
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;keyword--search&quot;&gt;Keyword  Search&lt;/h4&gt;
+
+&lt;p&gt;For keyword search we will use the tf-idf vectorizer from the first serie to find the most important keywords in a search query and then find the articles that matches the given keywords.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;get_ifidf_for_words&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;text&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;preprocess_text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tfidf_matrix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tf_idf_vectorizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;transform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;todense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;feature_names&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tf_idf_vectorizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_feature_names&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;feature_index&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tfidf_matrix&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,:].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nonzero&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tfidf_scores&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;feature_names&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;feature_index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tfidf_matrix&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;feature_index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;tfidf_scores&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tfidf_scores&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tfidf_scores&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;query_text&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'are monkey responsible of ebola'&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;search_by_tf_idf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+    this perform the seach by query 
+    &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;query_tfidf&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;get_ifidf_for_words&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;search_query&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Search&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;using&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;connections&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_connection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'covid19'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;search_query&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;search_query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'terms'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;tags&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query_tfidf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;results&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;search_query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The above query will return the following results :&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;print_results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;hit&lt;/span&gt;  &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;meta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;score&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;hit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;'-'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;abstract&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;  &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;'-'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;By analyzing those results we can see that that the the tfd-idf approach yield better result that the text search&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;query_text&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'are gorila responsible of ebola'&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;results&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;search_by_tf_idf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query_text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;print_results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gorila  responsible  ebola
+0.0 Aquareovirus effects syncytiogenesis by using a novel member of the FAST protein family translated from a noncanonical translation start site.
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+nonenvelope  virus  aquareoviruse  orthoreoviruse  unusual  ability  induce  cellcell  fusion  syncy
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 Neuropathological explanation of minimal COVID-19 infection rate &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;newborns, infants and children – a mystery so far. New insight into the role of Substance P
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+sarscov  novel  coronavirus  infection  covid  become  global  challenge  affect  elderly  populatio
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;query_text&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;was ebola found in africa &quot;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;results&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;search_by_tf_idf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query_text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;print_results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ebola  find  africa
+0.0 Comparison of Outcomes &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;HIV-Positive and HIV-Negative Patients with COVID-19
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+background  south  africa  high  prevalence  hiv  world  &lt;span class=&quot;nb&quot;&gt;date  &lt;/span&gt;record  high  number  &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;  covid  af
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 Multimorbidity &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;South Africa: a systematic review of prevalence studies
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+objective  review  prevalence  study  multimorbidity  south  africa  identify  prevalence  estimate 
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 Riesgo de COVID-19 en españoles y migrantes de distintas zonas del mundo residentes en España en la primera oleada de la enfermedad
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+introducción  objetivos  existen  pocos  estudio  sobre  el  potencial  papel  de  los  orígene  rac
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 The State of the World’s Midwifery 2021 report: findings to drive global policy and practice
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+third  global  state  world  midwifery  report  sowmy  provide  update  evidence  base  sexual  repr
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 How Is the World Responding to the Novel Coronavirus Disease &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;COVID-19&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; Compared with the 2014 West African Ebola Epidemic? The Importance of China as a Player &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;the Global Economy
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+article  describe  similarity  difference  response  government  international  community  current  
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 Clinical outcomes and cost-effectiveness of COVID-19 vaccination &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;South Africa
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+low  middleincome  country  implement  covid  vaccination  strategy  light  vary  uncertain  vaccine
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 While flattening the curve and raising the line, Africa should not forget street vending practices
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+street  vending  practice  common  africa  cater  large  portion  continent  population  since  iden
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;query_text&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;COVID-19: Is reinfection possible&quot;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;results&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;search_by_tf_idf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query_text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;print_results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;covid  reinfection  possible
+0.0 What Is the Antibody Response and Role &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;Conferring Natural Immunity After SARS-CoV-2 Infection? Rapid, Living Practice Points From the American College of Physicians &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Version 2&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+description  scientific  medical  policy  committee  smpc  american  college  physician  acp  develo
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 SARS-CoV-2 501Y.V2 escapes neutralization by South African COVID-19 donor plasma
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+sarscov  yv  novel  lineage  coronavirus  cause  covid  contain  multiple  mutation  within  two  im
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 Acute Inflammatory Painful Polyradiculoneuritis: An Uncommon Presentation Related to COVID-19.
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+covid  may  associate  neurologic  complication  patient  covid  may  develop  acute  inflammatory  
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 The Semester COVID-19 Stole the Joy
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+nursing  faculty  member  describe  covid  pandemic  disrupt  nursing  education
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 Severe Acute Respiratory Syndrome Coronavirus 2 Reinfection Associates With Unstable Housing and Occurs &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;the Presence of Antibodies
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+background  &lt;span class=&quot;nb&quot;&gt;factor  &lt;/span&gt;associate  severe  acute  respiratory  coronavirus  sarscov  reinfection  remain
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+0.0 COVID-19: a confirmed &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; of reinfection &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;a nurse
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+describe  &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;  yearold  man  report  first  confirm  &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt;  covid  reinfection  campania  region  it
+&lt;span class=&quot;nt&quot;&gt;----------&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;search-using-the-python-api&quot;&gt;Search using the python api&lt;/h3&gt;
+
+&lt;p&gt;In the following section we will peform search using the python api itself and compare the results with the one return in the search by query section.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;json&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;elasticsearch&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Elasticsearch&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;es_client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Elasticsearch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;run_query_loop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot; Asks user to enter a query to search.&quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;handle_query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;except&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;KeyboardInterrupt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;handle_query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot; Searches the user query and finds the best matches using elasticsearch.&quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;query&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Enter query: &quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;query&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;preprocess_text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;search_start&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;search&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;size&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;query&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;multi_match&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;query&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;fields&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;abstract&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;title&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]}}}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;es_client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'covid19'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dumps&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;search_time&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;search_start&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;{} total hits.&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;hits&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;total&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;value&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;search time: {:.2f} ms&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;search_time&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hit&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;hits&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;hits&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]:&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;id: {}, score: {}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;_id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;_score&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;_source&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'title'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;==****&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# print(hit[&quot;_source&quot;]['abstract'])
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;run_query_loop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Enter query: COVID-19: Is reinfection possible
+
+
+&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'size'&lt;/span&gt;: 10, &lt;span class=&quot;s1&quot;&gt;'query'&lt;/span&gt;: &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'multi_match'&lt;/span&gt;: &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'query'&lt;/span&gt;: &lt;span class=&quot;s1&quot;&gt;'covid  reinfection  possible'&lt;/span&gt;, &lt;span class=&quot;s1&quot;&gt;'fields'&lt;/span&gt;: &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'abstract'&lt;/span&gt;, &lt;span class=&quot;s1&quot;&gt;'title'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]}}}&lt;/span&gt;
+
+1087 total hits.
+search &lt;span class=&quot;nb&quot;&gt;time&lt;/span&gt;: 152.49 ms
+&lt;span class=&quot;nb&quot;&gt;id&lt;/span&gt;: 433, score: 49.442734
+Phenylethanoid glycosides as a possible COVID-19 protease inhibitor: a virtual screening approach
+&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;id&lt;/span&gt;: 622, score: 49.263004
+Possible Adrenal Involvement &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;Long COVID Syndrome
+&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;id&lt;/span&gt;: 31, score: 44.819622
+Molecular Hydrogen as a Novel Antitumor Agent: Possible Mechanisms Underlying Gene Expression
+&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;id&lt;/span&gt;: 369, score: 42.868736
+Recombinant dimeric small immunoproteins neutralize transmissible gastroenteritis virus infectivity efficiently &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;vitro and confer passive immunity &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;vivo.
+&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;id&lt;/span&gt;: 386, score: 38.94829
+Germany’s next shutdown—Possible scenarios and outcomes
+&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;id&lt;/span&gt;: 624, score: 35.84116
+Factors associated with COVID-19 infections and mortality &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;Africa: a cross-sectional study using publicly available data
+&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;id&lt;/span&gt;: 977, score: 35.332203
+COVID-19, Obsessive-Compulsive Disorder and Invisible Life Forms that Threaten the Self
+&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;id&lt;/span&gt;: 48, score: 33.553566
+Ocular Surface Disease during dupilumab treatment &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;patients with atopic dermatitis, is it possible to prevent it?
+&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;id&lt;/span&gt;: 530, score: 32.828606
+The effect of COVID-19 on mental well-being &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;Switzerland: a cross-sectional survey of the adult Swiss general population
+&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;id&lt;/span&gt;: 350, score: 32.144802
+The Impact of COVID-19 Pandemic Infection &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;Patients Admitted to the Hospital &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;Reasons Other Than COVID-19 Infection.
+&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;****&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Sarkar, D., 2022. A Practitioner’s Guide to Natural Language Processing (Part I) — Processing &amp;amp; Understanding Text. [online] Medium. Available at: &lt;a href=&quot;https://towardsdatascience.com/a-practitioners-guide-to-natural-language-processing-part-i-processing-understanding-text-9f4abfd13e72&quot;&gt;https://towardsdatascience.com/a-practitioners-guide-to-natural-language-processing-part-i-processing-understanding-text-9f4abfd13e72&lt;/a&gt; [Accessed 1 March 2022]&lt;/li&gt;
+  &lt;li&gt;Melanie Walsh, Introduction to Cultural Analytics &amp;amp; Python, Version 1 (2021).&lt;/li&gt;
+  &lt;li&gt;Allahyari, M., n.d. Text Search using TF-IDF and Elasticsearch, Machine Learning Tutorial. [online] Sci2lab.github.io. Available at: &lt;a href=&quot;https://sci2lab.github.io/ml_tutorial/tfidf/&quot;&gt;https://sci2lab.github.io/ml_tutorial/tfidf/&lt;/a&gt; [Accessed 2 March 2022].&lt;/li&gt;
+  &lt;li&gt;Manning, C. D., Raghavan, P., &amp;amp; Schutze, H. (2008). Introduction to Information Retrieval. Cambridge University Press.&lt;/li&gt;
+  &lt;li&gt;SPARCK JONES, K. (1972), “A STATISTICAL INTERPRETATION OF TERM SPECIFICITY AND ITS APPLICATION IN RETRIEVAL”, Journal of Documentation, Vol. 28 No. 1, pp. 11-21. https://doi.org/10.1108/eb026526&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Wed, 06 Apr 2022 13:03:59 +0100</pubDate>
+        <link>http://localhost:4000/information-retrieval-on-medical-research-papers-about-covid19-part-two</link>
+        <guid isPermaLink="true">http://localhost:4000/information-retrieval-on-medical-research-papers-about-covid19-part-two</guid>
+        
+        
+      </item>
+    
+      <item>
         <title>Congolese 🇨🇩 , Africans young Software Engineers, and Computer Scientists graduates - let’s get that master's degree! 🚀 🚀🚀🎓</title>
         <description>
 &lt;figure&gt;
@@ -2590,263 +3621,6 @@ After getting the latest version I installed it with :&lt;/li&gt;
         <link>http://localhost:4000/install-nvidia-driver</link>
         <guid isPermaLink="true">http://localhost:4000/install-nvidia-driver</guid>
         
-        
-      </item>
-    
-      <item>
-        <title>Local Boy visited the Etihad Stadium. Here is how it went.</title>
-        <description>
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2021-12-27-local-boy-visited-the-etihad-stadium-here-is-how-it-went/dream-come-true.jpeg&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;dream come true&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;p&gt;I had been dreaming about visiting the Etihad Stadium one day in my life. When I first applied for the Chevening Scholarship, watching a Mancity game was one of the reasons why I wanted to come to the UK.&lt;/p&gt;
-
-&lt;p&gt;I knew Boxing Day was a big day for the English Premier League, which is why I booked my ticket for the Manchester City against Leicester Game despite fear of postponement due to the new variant of COVID.&lt;/p&gt;
-
-&lt;p&gt;I traveled from Colchester to Manchester on the 24th of December and, I booked my stay at the Britannica Hotel in the heart of Manchester Piccadilly.&lt;/p&gt;
-
-&lt;p&gt;On the day of the game,  I took the bus to the Stadium. At first glimpse of the Stadium, I was in tears. My childhood dream became a reality. I was at the Etihad Stadium.&lt;/p&gt;
-
-&lt;p&gt;I arrived a bit late and missed the chance to have a full official Stadium tour. I still managed to visit the Stadium by myself later on, and took some nice pictures.&lt;/p&gt;
-
-&lt;h3 id=&quot;meeting-the-legend&quot;&gt;Meeting the legend&lt;/h3&gt;
-
-&lt;p&gt;Firstly, let’s start with a bit of history. I have been supporting Manchester City since 2008 when I found that Vincent Kompany has some Congolese origin and comes from the same region as I. I wish I had the chance to meet him when he played for ManCity, but sadly he retired from professional football years ago.&lt;/p&gt;
-
-&lt;p&gt;I have been a massive fan of him for his leadership on and off the pitch. I consider him my role model; therefore, I had to take my first picture of the day with his statue.&lt;/p&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2021-12-27-local-boy-visited-the-etihad-stadium-here-is-how-it-went/meeting-the-legend.jpeg&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;legend&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;h3 id=&quot;the-dream-come-true&quot;&gt;The Dream come true&lt;/h3&gt;
-
-&lt;p&gt;Secondly, I went to the Stadium and took the picture that sums up my childhood dreams, Espoir in the UK.&lt;/p&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2021-12-27-local-boy-visited-the-etihad-stadium-here-is-how-it-went/etihad-stadium.jpeg&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;at Stadium&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;h3 id=&quot;cream-on-the-cake-i-watched-a-game-live&quot;&gt;Cream on the cake, I watched a game live.&lt;/h3&gt;
-
-&lt;p&gt;And Finally, before the game, I took another one to show people and everyone I have been watching football with in Goma, Bukavu, Kigali pubs that their friend and the only Manchester City fan they know has made it to the Stadium.&lt;/p&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2021-12-27-local-boy-visited-the-etihad-stadium-here-is-how-it-went/before-game.jpeg&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;before the game&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;h3 id=&quot;final-result-and-fpl-disappointments&quot;&gt;Final result and FPL disappointments&lt;/h3&gt;
-
-&lt;p&gt;The game did end up well; we won 6-3; unfortunately, my FPL captain Phil Foden got only one point. I think this is the old FPL course. You_ should not captain a player you will be watching live. _&lt;/p&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2021-12-27-local-boy-visited-the-etihad-stadium-here-is-how-it-went/fpl-team-result.jpeg&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;fpl team result&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;p&gt;I wish I had the chance to catch the Canal + Broadcasting car to get a chance to pass on TV, but unfortunately, I couldn’t find where the car was standing.&lt;/p&gt;
-
-&lt;p&gt;Now I can say that I finished my year in style. I hope to watch more games in the future and more importantly to catch the CANAL + car next time I visit the Stadium.&lt;/p&gt;
-
-</description>
-        <pubDate>Mon, 27 Dec 2021 18:20:39 +0000</pubDate>
-        <link>http://localhost:4000/blog/2021/local-boy-visited-the-etihad-stadium-here-is-how-it-went/</link>
-        <guid isPermaLink="true">http://localhost:4000/blog/2021/local-boy-visited-the-etihad-stadium-here-is-how-it-went/</guid>
-        
-        
-        <category>non-tech</category>
-        
-      </item>
-    
-      <item>
-        <title>Lessons learned while Applying to Master’s Degrees In the UK.</title>
-        <description>&lt;p&gt;A bit earlier last year, in August 2020, I learned about the &lt;a href=&quot;https://www.chevening.org/&quot;&gt;Chevening scholarship&lt;/a&gt; from the Uk government, and I decided to give it a try. Chevening is a fully-funded scholarship by the UK government; it offers mid-career professionals from some countries the opportunity to study for a master’s degree in any university in the UK.&lt;/p&gt;
-
-&lt;p&gt;Part of the conditions to get the scholarship is to gain entry to any UK University. As a result, Chevening will cover your tuition fees and give you a monthly stipend of 1150 pounds. I needed the scholarship and admission to a UK university, and that is how my journey started.&lt;/p&gt;
-
-&lt;p&gt;In this blog, I will relate my experience with the application process. I will talk about my failures, my success stories, and what I learned during the process.&lt;/p&gt;
-
-&lt;p&gt;But before talking about the universities, let me talk about myself and my background to give you more context.&lt;/p&gt;
-
-&lt;h2 id=&quot;a-local-boy-from-bukavu-who-studied-in-goma&quot;&gt;A local boy from Bukavu who studied in Goma&lt;/h2&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://lh5.googleusercontent.com/M1sxZv-WK7g0gK0ZnDlbeDh2SewMyBlXvD2M5gMXmu6OCQHLQYo5YAiMq-GMkWQGBe4CWu0vdWMrrPZ5Lubf5gG2CGbn1dztFiegOJR9HdsJ5THG34m_R5xm67fd9cTwbapETJ_7&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The younger me, after my first year of undergraduate, receiving a scholarship worth 120 USD&lt;/p&gt;
-
-&lt;p&gt;I am from DR Congo, and I graduated from ULPGL in Goma, Eastern Congo; and as you may guess, I did my undergraduate studies in French. I did what we called Polytechnic and graduated in Genie Electrique et Informati­que, which is an equivalent of a Bachelor’s degree in Electrical Engineering and Computer science. As I spent six years in undergraduates studies, I thought it was a master’s degree, but I am sure it was not.&lt;/p&gt;
-
-&lt;p&gt;I didn’t graduate with distinction despite finishing some years with 72 %. I finished my last year with 64%, which was not a distinction. On average, my grades were around 67% which was an equi­valent of 2:2 degree in the UK or second class.&lt;/p&gt;
-
-&lt;p&gt;I think if I had the same grades in the UK , I would have been a first class degree. However since I came from a poor ranking country , the universities in the UK considered the degree  as second class. I learned this a bit late , but you can check the &lt;a href=&quot;https://www.westminster.ac.uk/sites/default/public-files/general-documents/overseas-academic-qualifications-equivalency-chart.pdf&quot;&gt;following article&lt;/a&gt; for the equivalences per country.&lt;/p&gt;
-
-&lt;p&gt;On top of my undergraduate, I had around five years of experience as a software engineer. I also had some Machine Learning experience acquired via community work and personal projects. I got the chance to participate in a research paper that got published, &lt;a href=&quot;https://arxiv.org/abs/2003.11529&quot;&gt;Masakhane’s paper&lt;/a&gt;. By the time I was applying, I was working on another paper that was not yet published.&lt;/p&gt;
-
-&lt;p&gt;My dream was to find a specialized master in Natural language processing or computational linguistic in the UK. That was my first mistake. Instead of looking for a specialized master in NLP, I could have looked for a more general master in either Machine learning, Data Science or Artificial Intelligence with NLP Courses.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-application-process&quot;&gt;The Application Process&lt;/h2&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://lh6.googleusercontent.com/Sk5MSRpTRSYxLIfvDHzd5WDqRlHLWNUonEr7nXG0albajremxmTQC4kP6zPAQPHrn-lkf4gC5ztC8imUeIlxeiXI4p3eGyelVBE8ip8lE4efMYroUv7hBHYzUQ2ayYZQsB4zR7KC&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;the-ielts-tests&quot;&gt;The IELTS Tests&lt;/h2&gt;
-
-&lt;p&gt;Coming from a francophone university I knew that it was important for me to have an English test either an IELTS or a TOEFL. I decide to go for the IELTS since I was applying for universities in the UK.&lt;/p&gt;
-
-&lt;p&gt;I sat for the IELTS test back in November 2020, and I was glad to get a 6.5. That was the least score to gain admission to a top university in the UK for 2021-2022. To learn more about my IELTS experience, &lt;a href=&quot;https://murhabazi.com/ielts-how-it-went/&quot;&gt;check out this blog post&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-recommendation-letters&quot;&gt;The recommendation letters&lt;/h2&gt;
-
-&lt;p&gt;I was glad and lucky with the recommendations I got. I didn’t leave my University on a good note, so it was not the best place to look for recommendations. However, I managed to get recommendations from my academic mentor from my research group, a former classmate who is already a Ph.D. student and a teaching assistant, and another one from a former colleague. There were generic recommendations where I needed to edit the university and the program I was applying for.&lt;/p&gt;
-
-&lt;h2 id=&quot;my-universities-choices&quot;&gt;My Universities choices&lt;/h2&gt;
-
-&lt;p&gt;As a guy who came from a low-tier university with poor grades, with strong imposter syndrome, and who was afraid to live in big cities; I didn’t bother applying to the top four: Oxbridge, UCL, Imperial, which are the top universities In Machine learning In the UK,In Europe and in the World.&lt;/p&gt;
-
-&lt;p&gt;I went ahead as the first batch and applied to the speech and Natural language processing at Edinburgh and the same program at Sheffield and Artificial Intelligence at Cardiff University. But honestly speaking, they were decent programs.&lt;/p&gt;
-
-&lt;h2 id=&quot;mistakes-i-made-while-applying&quot;&gt;Mistakes I made while applying.&lt;/h2&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://lh3.googleusercontent.com/ebv42UX_vWcm20D0DMKyW_-PRM69lw2b1BZDOBbY9gp_hT5-zHnkQsBSCZcG3sWi8p_JBLoBVSnLEXfRRJ-TF1QHGfwTx0niP9KUsVox9SLauNAS4Scklxcmcdb6y5gyac1ExGii&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Below are the first mistakes I made during the application process to those universities :&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;My final course transcripts: Instead of applying with all my transcripts illustrating all the courses I studied in my undergrad, I used the transcript for my two last years at University. I later discovered that I should have used all my transcripts, and it was late to edit my application with those transcripts.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Since my degree did not have any equivalent in the UK educational system, I thought it was a master’s degree since I spent six years as an undergrad, but I was mistaken. I Should have called it as it was &lt;em&gt;Licence en Genie Electrique et Informatique&lt;/em&gt;. I finally asked the &lt;a href=&quot;https://academia.stackexchange.com/questions/166060/diploma-equivalence-from-the-old-belgian-system/166062#166062&quot;&gt;question on stack exchange&lt;/a&gt;, and I got the final answer.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;My statement of purpose: The statement of purpose is the letter that opens your doors to universities. While applying to this, mine was good, but it was not outstanding for a student with my experience. I did not illustrate how my undergrad studies and professional experience prepared me for the master.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;the-first-bach-outcome&quot;&gt;The first Bach outcome&lt;/h2&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://lh4.googleusercontent.com/i0ZDVfj9GVCscjHgI3N9q_6nXKbswhHilgSg2UP8T7VB2VHDR0u2j4B8U62_29GxGYf1YNOv6ZmHp8SP-OFdUaImqKDDitUm0H1CcxWhKmyxeLG2ukmL2ytEG88zmBwBTstb3dXi&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;I got back-to-back rejections from those three universities, and the demons of Imposter Syndrome came back again.&lt;/p&gt;
-
-&lt;p&gt;Those universities required students to have at least a 2:1 grade (first class or distinction and from good universities ), that was not my case.&lt;/p&gt;
-
-&lt;p&gt;After failing to get admissions, start looking for middle-class university or Europa leagues teams for those familiar with Premier League.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-second-batch-of-applications&quot;&gt;The second batch of Applications&lt;/h2&gt;
-
-&lt;p&gt;I came across the Data Science master at Cardiff, Data science at Sussex, Big Data and text Analytics at Essex, Data Science and AI at New Castle, and Artificial Intelligence at Leeds university. From my research, those were decent universities with good NLP courses in their curriculum and good researchers doing NLP.&lt;/p&gt;
-
-&lt;h3 id=&quot;what-i-did-to-improve-my-applications&quot;&gt;What I did to improve my Applications&lt;/h3&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://lh3.googleusercontent.com/Bs6HkG1xpJT1qpqtxl_yWv96rXTduSruS20mbneVlWhk6qJsuPoSEmnvOHImCTrE1lg6Q0r1fzG15qqtLalGeBRuVa_3hjFwWVdxjO3m4z7TJVmYElGIkPMlbhY1v3WqKpuAd7Vo&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;I started looking for graduates forums online to learn about the UK’s application process and stumbled across the &lt;a href=&quot;https://www.reddit.com/r/gradadmissions/&quot;&gt;grad admission subreddit&lt;/a&gt;, &lt;a href=&quot;https://www.reddit.com/r/gradadmissions/comments/9pd2b8/the_statement_of_purpose_prompt_for_ucsd_is_a/&quot;&gt;the statement of purpose subreddit.&lt;/a&gt; I found a fantastic &lt;a href=&quot;http://writeivy.com/structure-is-magic-a-guide-to-the-graduate-sop/&quot;&gt;guide&lt;/a&gt; on the subreddit written  by a graduate study expert, and I applied all the advice written in that blog. The statement of purpose subreddit has many students going in the same process as you and who are willing to help you review your SOP. I was glad I got help from the subreddit, and it helped me proofread my new statement.&lt;/p&gt;
-
-&lt;p&gt;I went ahead and got all my transcripts from my university and translated them. I also got a letter confirming that I finished my studies at my university since we did not have our certificate signed by our Minister now. Don’t ask me why because I don’t have an answer for that.&lt;/p&gt;
-
-&lt;p&gt;I applied to those universities with my updated transcripts, statements of purpose, and recommendation letters and started waiting for the results.&lt;/p&gt;
-
-&lt;h3 id=&quot;the-second-batchs-outcome&quot;&gt;The second batch’s Outcome&lt;/h3&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://lh4.googleusercontent.com/CU1lBE_xq9SWKo07bw3Z0ruD_usjutTMG3tci1Q0ewBBuZ5ZclIHj1R2DKAllST8wfNSnzqHzWYxiOvBgAgjwNLSaEVhEAM4XJhKv3uTEFe4wSoU1GGY6IWf5MnIaG27BTNiIBAF&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;I got another rejection from Leeds. But, to my dismay, in April, I got an Unconditional offer from Essex. The offer was enough to put me in an excellent position to get the Chevening scholarship. I submitted it as my second choice to Chevening with Cardiff, and Edinburgh being my 1st and third choices.&lt;/p&gt;
-
-&lt;p&gt;I later received another offer from Sussex, New Castle, and a conditional offer from the Data Science program at Cardiff University.&lt;/p&gt;
-
-&lt;p&gt;By the time I got the offer from those universities, I had already passed the Chevening Interview, and I could not amend my choices. Should I have got a chance to do so, I could have picked Sussex as my first choice and Cardiff as my third choice.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-final-decision&quot;&gt;The Final Decision&lt;/h2&gt;
-
-&lt;p&gt;No matter how many offers I got, I had to attend only one university.&lt;/p&gt;
-
-&lt;h3 id=&quot;why-sussex&quot;&gt;Why Sussex?&lt;/h3&gt;
-
-&lt;p&gt;I found the master of Data Science at Susses a perfect choice for me and my career goals and NLP ambitions. The course has two NLP modules in the curriculum and has some good professors doing NLP research. It was near Brighton on the beach and had a good reputation for African students. And while applying for the university, I found that it has my local African university in its choices.&lt;/p&gt;
-
-&lt;h3 id=&quot;why-cardiff-at-third&quot;&gt;Why Cardiff At third&lt;/h3&gt;
-
-&lt;p&gt;Although their international department communication was good, I did not meet their condition in time to secure my scholarship. It required me to have my final degree signed by our minister on time but with our country’s politics that was not possible. There is the letter called &lt;em&gt;A qui de droit&lt;/em&gt;, which the university declined. After many back and forth with the grad admission team, I finally got an unconditional offer, but it was too late for the Chevening application deadline.&lt;/p&gt;
-
-&lt;h3 id=&quot;so-i-ended-up-in-essex&quot;&gt;So I Ended up in Essex&lt;/h3&gt;
-
-&lt;p&gt;Since it was the only university I submitted to Chevening after the interview, I got an offer. It was impossible to change it later, it was the only option I had, but if I had the choice to change, I could have chosen Sussex or Cardiff instead.&lt;/p&gt;
-
-&lt;p&gt;I am not very happy with the university admission department, and they are somehow slowish. To illustrate that, we are one month before the course start date, but I haven’t yet got my Confirmation of Acceptance of Studies ( CAS). Anyway, it is already late to change my university choice. I will have to go there.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-i-am-looking-forward-to&quot;&gt;What I am looking forward to&lt;/h2&gt;
-
-&lt;p&gt;I think the calm in the town will help me to concentrate on my studies. I am looking forward to interacting with Prof &lt;a href=&quot;https://www.essex.ac.uk/people/jamee22406/shoaib-jameel&quot;&gt;Dr. Shoaib Jameel&lt;/a&gt; and integrating his NLP group to research on great questions answering, search and information retrieval.&lt;/p&gt;
-
-&lt;p&gt;Colchester seems to be a quiet city for me but  it is just one hour from London. I plan to enjoy my studies there and spend some weekends in London.&lt;/p&gt;
-
-&lt;p&gt;I will enjoy my journey In the UK as much as possible and watch at least two premiers leagues games. The Manchester derby and a London derby.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-next-after-my-master&quot;&gt;What Next After My master&lt;/h2&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://lh4.googleusercontent.com/xB8NvTHRCRnGLIBgb_hSJydGN4MG1lkY2ZC1IHW41UI0YNIOJ2lEervFw6KlgnThwtztOg3b6n7IibusYwo3I7BdXjVuPOLATkDWHTVwPwsdPPiqkTDzYizsB-T2urG3R5HAruly&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;What next After graduating, I will come back home and give back to the community. Yes, I will come back, my African people. I am not planning to stay in the UK; I will return to Africa; those are my ambitions. I hope to learn a lot during my studies and work hard for two years and see if I will still have the energy to apply for a Ph.D., this time in a top-four team.&lt;/p&gt;
-
-&lt;h2 id=&quot;fears-reflections-and-joys&quot;&gt;Fears, Reflections, and Joys&lt;/h2&gt;
-
-&lt;p&gt;The good news is that I got the Chevening scholarship, and I will be a sponsored student in the Uk for the following year. I have heard people congratulate me for that and tell me that it is a prestigious scholarship but let wait and see.&lt;/p&gt;
-
-&lt;p&gt;I regret that I didn’t get admission from Edinburgh or Sheffield, which was kind of Europa League teams. I somehow regret the fact that I didn’t even apply to Oxbridge, University College London, or Imperial College London, like Man City, Man United, Liverpool, and Chelsea.&lt;/p&gt;
-
-&lt;p&gt;My biggest fear is losing my job. I have a paying job that is paying me more than the monthly stipend Chevening gives. Will I be able to work part-time while studying? If not, how will I be able to support my family while studying?&lt;/p&gt;
-
-&lt;p&gt;How will I get money to enjoy weekends in the UK, football matches, and meet beautiful girls?&lt;/p&gt;
-
-&lt;p&gt;But sometimes I just sit down and say, it will be fine.&lt;/p&gt;
-
-&lt;h2 id=&quot;lessons-learned&quot;&gt;Lessons learned&lt;/h2&gt;
-
-&lt;p&gt;To sum up, here are the few lessons I learned:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;If you are in CS, this tool, &lt;a href=&quot;http://csrankings.org/#/index?nlp&amp;amp;ir&amp;amp;uk&quot;&gt;CSRankings: Computer Science Rankings&lt;/a&gt;, is a must-have you can use to learn more about university rankings. What I enjoyed about the website is that it doesn’t only give you university rankings. Still, it can rank university per topic or area and give you a list of professors working on a given topic. Those pieces of information are instrumental when you are writing your statement of purpose.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Join graduate communities on Reddit &lt;a href=&quot;https://www.reddit.com/r/gradadmissions/&quot;&gt;r/gradadminssion&lt;/a&gt;, &lt;a href=&quot;https://www.reddit.com/r/StatementOfPurpose/&quot;&gt;r/statement of purpose&lt;/a&gt;, and you will enjoy the help and resources you can find on those groups. I am not a fan of other social media platforms, but I am sure you can get more support and find similar groups to those subreddits.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;During the application time, most of the universities organize open days, virtual or on-site events. Make sure you attend those events and learn as much as you can about your department and the international admission department. This will help to put you in a good position when writing your statement of purpose and should put you in touch with the international admission team.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Make sure all your documents are ready on time. If you did not do your undergraduate in English, ensure you have certified translations of all your documents on time.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;If you are from a French university, start early to get an IELTS or TOEFL score on time,&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Make sure your recommendations are ready.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Never underestimate your contributions to community projects and the work you did back in university.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;And start applying early to learn as much as you can in the process.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;And to conclude, I will leave you with one of my favorite quotes:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://lh6.googleusercontent.com/DWzKbI2f7bbP_eCsfYXxShke33eQuW3zotTW_NlC1OJmA8EepOryVwKHSHn39N05-QX2xwjtKI8dpglgdYmorgICSvOCzg2WNK7liaJdF8m4ywfg2ct9wUwbyWqFvLI6c-6MHKob&quot; /&gt;&lt;/p&gt;
-
-</description>
-        <pubDate>Fri, 05 Nov 2021 23:00:36 +0000</pubDate>
-        <link>http://localhost:4000/blog/2021/lessons-learned-while-applying-to-masters-degrees-in-the-uk/</link>
-        <guid isPermaLink="true">http://localhost:4000/blog/2021/lessons-learned-while-applying-to-masters-degrees-in-the-uk/</guid>
-        
-        
-        <category>non-tech</category>
         
       </item>
     

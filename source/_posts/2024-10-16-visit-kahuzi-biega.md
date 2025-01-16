@@ -11,6 +11,7 @@ categories:
 tags:
 
 published: true
+is_draft: false
 ---
 
 

@@ -6,6 +6,7 @@ description: Open source projects you can contribute to for hacktoberfest.
 comments: true
 categories: tech
 published: true
+is_draft: false
 ---
 
 {% include image.html name="festival.jpg" caption="cover image" %}

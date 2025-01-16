@@ -6,6 +6,7 @@ layout: post
 comments: false
 categories: non-tech
 published: true
+is_draft: false
 ---
 
 

@@ -10,6 +10,7 @@ categories:
 layout: post
 tags:
 published: true
+is_draft: false
 
 ---
 
