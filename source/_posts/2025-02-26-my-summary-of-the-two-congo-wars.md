@@ -4,8 +4,8 @@ title: "Summarizing the Congo Wars: The Key Players and Who’s to Blame?"
 permalink: my-summary-of-the-two-congo-wars
 date: 2025-02-26 17:03:51
 comments: true
-description: "Summarizing the Congo Wars: The Key Players and Who’s to Blame"
-keywords: "Who caused the Congo Wars? Explore the roles of the Tutsi, Congolese leaders, and external actors in the two congo wars."
+description: "Who caused the Congo Wars? Explore the roles of the Tutsi, Congolese leaders, and external actors in the two congo war. A deep dive into accountability and lessons for peace."
+keywords: "Tutsi role in Congo Wars, Congolese responsibility in Congo Wars, Rwanda and Congo conflict, Laurent-Désiré Kabila and Congo Wars, RCD, AFDL"
 categories:
 
 tags:

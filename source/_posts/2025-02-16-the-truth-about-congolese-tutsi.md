@@ -4,7 +4,7 @@ title: "The truth about the Congolese Tutsi"
 permalink: the-truth-about-congolese-tutsi
 date: 2025-02-16
 comments: true
-description: "Explore the complex history of the Congolese Tutsi and Banyamulenge in the Democratic Republic of Congo (DRC). This post delves into their origins, migration, and legal status as Congolese citizens, while addressing their role in regional conflicts and ties to Rwanda. Gain insights into the challenges of integration and the ongoing tensions in the Great Lakes region."
+description: "Congolese Tutsi and Banyamulenge in the Democratic Republic of Congo (DRC). This post delves into their origins, migration, and legal status as Congolese citizens, while addressing their role in regional conflicts and ties to Rwanda."
 keywords: "Banyamulenge, Tutsi, Tutsi Congolais, Congo Conflict, Tutsi Congolais"
 categories:
 
