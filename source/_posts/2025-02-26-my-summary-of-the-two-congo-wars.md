@@ -135,9 +135,8 @@ However Congolese are also to blame for everything they did here, Yes Kabila, Ye
 
 ## Retour ndjo Match 😳: The Second Congo War (1998–2002).
 
-![alt text](image.png)
 
-{% include image.html name="map-operation-kitona.png" caption="The map of Operation Kitona and African Countries involves in this war" [source: Kitona Operation]" %}
+{% include image.html name="map-operation-kitona.png" caption="The map of Operation Kitona and African Countries involves in this war [source: Kitona Operation]" %}
 
 
 
