@@ -99,7 +99,8 @@ task :post do
     post.puts "#{categories}"
     post.puts "tags:"
     post.puts "#{tags}"
-    post.puts "published: \"false\""
+    post.puts "published: false"
+    post.puts "is_draft: false"
     post.puts "---"
   end
 end # task :post
