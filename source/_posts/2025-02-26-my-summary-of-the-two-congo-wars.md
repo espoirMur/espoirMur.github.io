@@ -135,6 +135,10 @@ However Congolese are also to blame for everything they did here, Yes Kabila, Ye
 
 ## Retour ndjo Match 😳: The Second Congo War (1998–2002).
 
+![alt text](image.png)
+
+{% include image.html name="map-operation-kitona.png" caption="The map of Operation Kitona and African Countries involves in this war" [source: Kitona Operation]" %}
+
 
 
 James K., Kagame, all the Rwandan and Ugandan soldiers in Congo were not happy with the treatment Kabila gave them in Kinshasa. They fled back to the East and started a new rebellion with the mission to control the East Congo region and kick Kabila out of power.
@@ -143,7 +147,7 @@ In August 1998, well-known Tutsi leaders from AFDL (Bizima Karaha, Déogratias B
 
 ### La fameuse bataille de Kitona: The Kitona Battle!
 
-At this time, James was leading the army branch of the rebellion. A month after being fired by Kabila, he took a plane in Goma and tried to fly to Kitona in the Bas-Congo province, 200 km from Kinshasa. With the help of Congolese troops who were still faithful to him, he managed to control Kitona airport and flew in other Rwandan troops from the Goma airport to Kitona to take over Kinshasa. With Kitona under his control, he cut power to Kinshasa from the Inga power plant.
+At this time, James was leading the army branch of the rebellion. A month after being fired by Kabila, he took a plane in Goma and tried to fly to Kitona in the Bas-Congo province, 573 km from Kinshasa. With the help of Congolese troops who were still faithful to him, he managed to control Kitona airport and flew in other Rwandan troops from the Goma airport to Kitona to take over Kinshasa. With Kitona under his control, he cut power to Kinshasa from the Inga power plant.
 
 Kabila felt attacked and went to ask his allies from SADC for military protection!
 
@@ -234,5 +238,5 @@ This is far from being a perfect story, I did my best to summarise what I learne
 - The Path of Genocide, the Rwanda crisis from Uganda to Zaire, [Link](https://www.diva-portal.org/smash/get/diva2:276851/FULLTEXT01.pdf) this one is hard to find online, may be Kagame have removed it form bookshops.
 
 - The Great African War by Filip REYNTJENS.
-
+-  The Kitona Operation, Rwanda’s Gamble to Capture Kinshasa and the Misreading of an “Ally” [Link](https://ndupress.ndu.edu/Portals/68/Documents/jfq/jfq-68/JFQ-68_99-104_Stejskal.pdf)
 
