@@ -14,7 +14,7 @@ published: true
 is_draft: false
 ---
 
-> Mwana ya moto ata omelisi ye libele na butu, na tongo tango akolamuka akotuna wapi baboti baye.
+> Mwana ya moto ata omelisi ye libele na butu, na tongo tango akolamuka akotuna wapi baboti baye. _Congolese Proverb Excerpt from Grace a toi Germain Song by JB Mpiana_
 
 > Someone else's child, even if you breastfeed him at night, in the morning he will wake up and ask where his parents are.
 
