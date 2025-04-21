@@ -14,6 +14,7 @@ published: true
 is_draft: false
 ---
 
+>Update 2025: Since the begin of this Year, the M23 rebels supported by the Rwanda Government have decided to invade the Kivu region. Due to that it is not currently possible to visit the Parc because of security issues. I hope That the government will sort out that issue and people around the parc will be able to enjoy that destination.
 
 Last December, I had a chance to visit the Kahuzi-Biega National Park in South Kivu. 
 I grew up in Bukavu and spent most of my adulthood there but I have never had a chance to visit that park yet it was just a few kilometers from home. 
