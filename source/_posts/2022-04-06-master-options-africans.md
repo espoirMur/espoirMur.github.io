@@ -103,6 +103,25 @@ Some Alums I have interacted with :
 
 It is a fully-funded scholarship, and you don't need to pay anything. You are only required to have two years of work experience and good leadership background. As part of the application process, you will have to write four essays. These are your leadership and Networking skills, your course of studies, and your career plan. The application process is lengthy, but it is worth it. To be honest with you, it is one of the best scholarships in the world as long as you get a place to a good university in UK. One quack, is that part of the terms and conditions of the scholarship you have to return to your home country for at least two years. 
 
+
+### Update 2025: Other Scholarship to consider:
+
+I haven't personally applied for these scholarships, but I am sure they are excellent opportunities for Africans who dream of studying in Europe. Here they are:
+
+- Fullbright Scholarship form USA. 🇺🇸 [Fullbright Scholarship](https://cd.usembassy.gov/the-fulbright-foreign-student-program-for-drc-applications-now-open-for-2025-2026/)
+- MEXT Scholarship from Japan. 🇯🇵 [MEXT Scholarship](https://www.mext.go.jp/en/policy/education/highered/title02/detail02/sdetail02/1373897.htm)
+- DAAD Scholarship from Gernmany .🇩🇪🇪 [DAAD scholarship](https://www.daad.de/en/studying-in-germany/scholarships/daad-scholarships/)
+- Erasmus Mundus Scholarship. 🇪🇺[Erasmus Scholarship](https://erasmus-plus.ec.europa.eu/opportunities/opportunities-for-individuals/students/erasmus-mundus-joint-masters)
+- Belgian Gouvernment Scholarship. [ARES Scholarship](https://www.ares-ac.be/fr/cooperation-au-developpement/bourses/ressortissants-sud/bacheliers/810-bachelier-de-specialisation-en-business-data-analysis)🇧🇪
+- Eiffel Scholarship from the [French Gouvernement](https://www.campusfrance.org/en/france-excellence-eiffel-scholarship-program) 🇫🇷.
+
+You can more about those [scholarship here.](https://www.reddit.com/r/IWantOut/s/EWTjTlQ2mc)
+
+Learn more about [other scholarship here As well.](https://www.scholars4dev.com/10017/top-100-international-scholarships-international-students/)
+
+
+This list is non exhuastive, if you search for the website of the embassy of any country in the world you can find that they have opportunities congolese folks can apply for.
+
 ## Conclusions
 
 
