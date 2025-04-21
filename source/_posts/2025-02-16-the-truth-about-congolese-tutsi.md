@@ -35,6 +35,11 @@ In Rwanda, we have three major ethnic groups: the Tutsi, the Hutu, and the Twa.
 * The Tutsi are original cattle *breeders*, and originally were nomad people who like to live anywhere where cattle can grow. Mostly in the mountains.
 * Hutu: are bantou originally farmers.
 * The twa: are pygmies as we call them in Congo.
+* Hybrides or mixed, those who are a mixture of those two tribes
+
+PS: The concept of tribes is very controversial in Rwanda. It led to one of the biggest attrocity of the century the Rwandan Genocide in 2024.
+
+I have also learned from some of my Rwandan friends that it has been time that Belgian could be awarded the ethnicity Tutsi based on their merits in the society or based on the number of cows they own.
 
 During their history, Tutsi have migrated and lived in Congo. I don't want to talk about the history of Tutsi here; there are a lot of books online and articles published about it. Also, I don't want to talk about the conflict between Tutsi and Hutu for the same reason. In this post, I will try to put my notes together about the history of Tutsi who lived in Congo and who are, by Congolese law, Congolese. Yes, I know it's controversial, but they are Congolese.
 
@@ -50,7 +55,7 @@ The name Banyamulenge is derived from the words *akarenge* and *uturenge* (in it
 
 People living in hamlets on those mountains were called *bene-turenge* or *abanyaturenge*. These villages constituted an area or a location known as *imurenge*. Those living in such locations were called *abanyamurenge*.
 
-The Banyamulenge come from *Banya-murenge*, but as Rwandese and people speaking Kinyarwanda don't know the difference between Tutsi `l` and `r`, they pronounce it *mulenge*.
+The Banyamulenge come from *Banya-murenge*, but as Rwandese and people speaking Kinyarwanda don't know the difference between `l` and `r`, they pronounce it *mulenge*.
 
 # Their origin
 
@@ -77,6 +82,8 @@ Let’s see what our constitution says about it in *Article 10*:
 Since these Tutsi were in Congo before independence in 1960, we can say today that, based on our constitution, they are Congolese.
 
 They are Congolese to the same level as other ethnic groups that were in Congo before 1960. There are also Hutu who were present in Congo before independence, and they are also Congolese.
+
+Despite the fact that they are considered as Congolese today, there been time where they were not considered as Congolese by the Congo constitution, in my next post I will speak about those changes that happened to our constitution and denied them the Congolese for sometimes.
 
 # Conclusion
 

@@ -23,6 +23,8 @@ In my last post, I described the origin of the Tutsi living in Congo and I demon
 
 It is impossible to write about the Congolese Tutsi without mentioning the changes that happened to our nationality laws in 1971 and 1982. That is the reason why I will start this post by shedding light on those laws. Then I will describe the first war of Congo (The AFDL war) and its implications. Finally, I will summarize the second war in Congo, or the RCD war. I will conclude this post with the peace deal Joseph Kabila signed in 2002 that ended the first part of the war in the country. In my next post, I will write about the CNDP war and the beginning of the M23 rebellion.
 
+
+
 This post is my summary of books on this topic written by Congolese, Rwandan, and Belgian authors, as well as a summary of my experience of this war as someone who lived in the region. For those who are interested in the topic, I will list books in the conclusion of this post where you can read more about the Congo Wars.
 
 So, Tokende... 🚀
@@ -32,6 +34,8 @@ So, Tokende... 🚀
 ### La Loi Bisengimana
 
 During the first part of Mobutu's reign in Congo (1965–1980), the political situation in Congo in general was calm. Congo had an amazing and strong relationship with both Rwanda and Burundi. It was during this period that the CEPGL, a regional organization that includes Rwanda, Burundi, and Congo, was created.
+
+{% include image.html name="kabila-habyarimana.png" caption=" Mobutu and Habyarimana" %}
 
 Also during this period, Mobutu appointed Barthélemy Bisengimana Rwema, a Tutsi refugee from Rwanda as his Chief of Staff from 1970 to 1982.
 
