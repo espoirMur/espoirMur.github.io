@@ -22,16 +22,16 @@ Recently I documented myself on summarization metrics and I found a load of them
 # Definition
 
 Text summarization is the process of producing a concise and coherent summary while preserving key information and meaning of the source text.
-There are two major approaches to automatic text summarization: **extractive** and **abstractive** summarization.
-**Extractive summarization** involves selecting important sentences or phrases from the original document.
-On the other hand, **abstractive summarization** generates the summary with sentences that are different from those in the original text while not changing the ideas.
+There are two major approaches to automatic text summarization: *extractive* and *abstractive* summarization.
+*Extractive summarization* involves selecting important sentences or phrases from the original document.
+On the other hand, *abstractive summarization* generates the summary with sentences that are different from those in the original text while not changing the ideas.
 In most cases, when you prompt a Large Language Model (LLM), it generates an abstractive summary of the text.
 
 # Evaluation
 Evaluation is the process of evaluating the quality of a summarization output.
-Evaluation of a summarization can be done in two ways: by using a **human evaluator** or using **automated metrics.**
+Evaluation of a summarization can be done in two ways: by using a *human evaluator* or using *automated metrics.*
 Human evaluation is more accurate but it is time-consuming and requires a lot of effort.
-**Automatic evaluation** is simple, easy to scale, but sometimes less accurate.
+*Automatic evaluation* is simple, easy to scale, but sometimes less accurate.
 
 ## Human Evaluation:
 
