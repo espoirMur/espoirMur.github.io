@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+  
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+  type="text/javascript">
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="canonical" href="http://localhost:4000/evaluation-metrics-for-summarization">
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CJV32Y553Z"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-CJV32Y553Z');
+</script>
+
+
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Evaluation Metrics For Summarization | Espoir Murhabazi ideas’ home</title>
+<meta name="generator" content="Jekyll v4.2.2" />
+<meta property="og:title" content="Evaluation Metrics For Summarization" />
+<meta name="author" content="Murhabazi Buzina Espoir" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Evaluation Metrics For Summarization, Reference Free summarization and Reference Summarization, Evaluating GenAI." />
+<meta property="og:description" content="Evaluation Metrics For Summarization, Reference Free summarization and Reference Summarization, Evaluating GenAI." />
+<link rel="canonical" href="http://localhost:4000/evaluation-metrics-for-summarization" />
+<meta property="og:url" content="http://localhost:4000/evaluation-metrics-for-summarization" />
+<meta property="og:site_name" content="Espoir Murhabazi ideas’ home" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-05-22T00:00:00+01:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Evaluation Metrics For Summarization" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Murhabazi Buzina Espoir"},"dateModified":"2025-05-22T00:00:00+01:00","datePublished":"2025-05-22T00:00:00+01:00","description":"Evaluation Metrics For Summarization, Reference Free summarization and Reference Summarization, Evaluating GenAI.","headline":"Evaluation Metrics For Summarization","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/evaluation-metrics-for-summarization"},"url":"http://localhost:4000/evaluation-metrics-for-summarization"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <div class="container">
+    <input type="checkbox" id="toggleNavbar">
+    <h1 class="logo"><a href="/">esp<span>.py</span></a></h1>
+    <label for="toggleNavbar" role="button" class="toggle-navbar-button">
+      <i class="icon icon-menu"></i>
+      <i class="icon icon-cross"></i>
+    </label>
+    <nav class="navbar">
+      <ul>
+        <li><a href="/" title="Home">127.0.0.1</a></li>
+        
+          <li><a href="/about" title="whoami();">whoami();</a></li>
+        
+          <li><a href="/blog" title="read();">read();</a></li>
+        
+          <li><a href="/schedule" title="schedule();">schedule();</a></li>
+        
+          <li><a href="/drafts" title="drafts();">drafts();</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</header>
+
+
+<main class="main-container">
+  <div class="container">
+    <article role="article" class="post">
+
+  <div class="card">
+    <header class="post-header">
+      <h1 class="post-title">Evaluation Metrics For Summarization</h1>
+      <em class="post-meta">
+        <time>May 22, 2025</time>
+      </em>
+    </header>
+
+    <div class="post-content">
+      
+      <blockquote>
+  <p>Everyone wants GenAI, but no one wants to spend time on evaluation or generating reference texts.</p>
+</blockquote>
+
+<p>I worked on a summarization project recently but I have never spent time evaluating the summarization output. My summarizer <a href="https://balobi.info/">balobi.info</a> makes a lot of mistakes: sometimes it generates news in English, other times it confuses Congo and Rwanda, or sometimes it makes up stuff. Those errors could have been avoided if I had spent time evaluating the metrics and deciding which metrics I could use for my model.</p>
+
+<p>Recently I documented myself on summarization metrics and I found a load of them online. I decided to summarize them for the reader in this post.</p>
+
+<h1 id="definition">Definition</h1>
+
+<p>Text summarization is the process of producing a concise and coherent summary while preserving key information and meaning of the source text.
+There are two major approaches to automatic text summarization: <strong>extractive</strong> and <strong>abstractive</strong> summarization.
+<strong>Extractive summarization</strong> involves selecting important sentences or phrases from the original document.
+On the other hand, <strong>abstractive summarization</strong> generates the summary with sentences that are different from those in the original text while not changing the ideas.
+In most cases, when you prompt a Large Language Model (LLM), it generates an abstractive summary of the text.</p>
+
+<h1 id="evaluation">Evaluation</h1>
+<p>Evaluation is the process of evaluating the quality of a summarization output.
+Evaluation of a summarization can be done in two ways: by using a <strong>human evaluator</strong> or using <strong>automated metrics.</strong>
+Human evaluation is more accurate but it is time-consuming and requires a lot of effort.
+<strong>Automatic evaluation</strong> is simple, easy to scale, but sometimes less accurate.</p>
+
+<h2 id="human-evaluation">Human Evaluation:</h2>
+
+<p>In most cases, humans are tasked to evaluate the model outputs using four criteria:</p>
+
+<ul>
+  <li><strong>Coherence</strong>: It evaluates how good the sentences are.</li>
+  <li><strong>Consistency</strong>: The factual alignment between the summary and the summarized source. A factually consistent summary contains only statements that are entailed by the source document. Annotators were also asked to penalize summaries that contained hallucinated facts.</li>
+  <li><strong>Fluency</strong>: The quality of individual sentences. Drawing again from the DUC quality guidelines, sentences in the summary ‘‘should have no formatting problems, capitalization errors or obviously ungrammatical sentences (e.g., fragments, missing components) that make the text difficult to read.’’</li>
+  <li><strong>Relevance</strong>: Selection of important content from the source. The summary should include only important information from the source document. Annotators were instructed to penalize summaries that contained redundancies and excess information.</li>
+</ul>
+
+<p>A final score is computed by averaging the scores of all these criteria.</p>
+
+<h2 id="automatic-evaluation">Automatic Evaluation:</h2>
+
+<p>In term of automatic evaluation we have two types of metrics, <strong>references based metrics</strong> and <strong>non reference metrics.</strong> or references free metrics.</p>
+
+<p>References metrics involves a human annotator who will give a reference summary to compare the generated summary against.
+For non references metrics there is no references and the generated summary is compared against the original text.
+ </p>
+<h3 id="metrics-for-references-evaluation">Metrics for References Evaluation: </h3>
+
+<figure>
+  <p><img src="/assets/posts/2025-05-22-evaluation-metrics-for-summarization/reference-based-summary.png" /></p>
+  <figcaption>reference based summary</figcaption>
+</figure>
+
+<p>Here are the metrics for automated summarization evaluation:</p>
+
+<ul>
+  <li><strong>ROUGE:</strong> (Recall-Oriented Understudy for Gisting Evaluation), measures the number of overlapping textual units (n-grams, word sequences) between the generated summary and a set of gold reference summaries. Many papers have suggested that ROUGE metrics is the one that correlates the most with human juggement.</li>
+  <li><strong>ROUGE-WE:</strong> extends ROUGE by using soft lexical matching based on the cosine similarity of Word2Vec embeddings.</li>
+  <li><strong>BertScore:</strong> computes the semantic similarity scores by aligning generated and reference summaries on a token-level. Token alignments are computed greedily to maximize the cosine similarity between contextualized token embeddings from BERT.</li>
+  <li><strong>BLEU:</strong> is a corpus level precision-focused metric that calculates n-gram overlap between a candidate and reference utterance and includes a brevity penalty. It is the primary evaluation metric for machine translation.
+<strong>CIDER:</strong>  computes {1–4}-gram cooccurrences between the candidate and reference texts, down weighting common n-grams and calculating cosine similarity between the n-grams of the candidate and reference texts.</li>
+</ul>
+
+<h3 id="reference-free-metrics">Reference Free Metrics:</h3>
+
+<figure>
+  <p><img src="/assets/posts/2025-05-22-evaluation-metrics-for-summarization/reference-free-summary.png" /></p>
+  <figcaption>reference free summaries</figcaption>
+</figure>
+
+<p>Non reference based metrics are metrics that are based on the matching between the generated summary and the reference text.</p>
+
+<p>They are faster to implement as they don’t requires any human annotator.</p>
+
+<p>All the methods references metrics can be used to build references free metrics. We can do that by considering the original document as the summary and compare the generated summary with it.</p>
+
+<ul>
+  <li><strong>ROUGE-C</strong>: is a modification to ROUGE: Instead of comparing to a reference summary, the generated summary is compared to the source document. We can go further with ROUGE C and create metrics that will down-weight common terms in the text and up-weight important terms that are present in the summary.
+<em>Researchers found that ROUGE-C correlated well with methods that depend on reference summaries, including human judgments.</em></li>
+  <li><strong>SUPERT</strong>:  Rate the quality of a summary by measuring it semantic similarity with a pseudo reference summary. The pseudo references are generated by selecting salient sentences from the sources document using contextualized embedding and soft token alignment techniques.
+Compared to the state-of-theart unsupervised evaluation metrics, SUPERT correlates better with human ratings by 18- 39%.</li>
+  <li><strong>Entailment Metrics Based on NLI Tasks</strong></li>
+</ul>
+
+<p><strong>Entailment metrics</strong> are based on the <strong>natural language inference (NLI) task</strong> where a hypothesis sentence is classified as entailed by, neutral, or contradicting a premise sentence. To evaluate abstractive summarization for consistency, we check if the summary is entailed by the source document.
+In the scientific literature the metric used is called SummaC.</p>
+
+<p><em>How does SummaC works?</em></p>
+
+<p>It split the original document in block of text(sentences, or paragraph), the generated summary by the sentences. Then use a NLI model such as BERT to compute the entailment score for each sentence of generated summary vs each sentence in the original document. Those scores are saved in a matrix which is called entailment matrix.
+For SummaCZS, they reduce the entailment matrix into a one-dimensional vector by taking the maximum value in each column. Intuitively, this results in retaining the score for the document sentence that provides the strongest support for each summary sentence. Then, to get a single score for the entire summary, they simply compute the mean of the vector.
+There are other sophisticated approach of the entailment matrix using a convolutional layer.
+The bellow picture describes how the entailment matrix works.</p>
+
+<figure>
+  <p><img src="/assets/posts/2025-05-22-evaluation-metrics-for-summarization/sumac.png" /></p>
+  <figcaption>SummaC summarization</figcaption>
+</figure>
+
+<h2 id="llm-as-a-judge-for-summaries-evaluation">LLM as a Judge for summaries Evaluation</h2>
+
+<p>With the rise of LLM, we have seen case in the literature where we are using LLM as a judge to evaluate the LLM summary.  With this approach we let the LLM is trying to replicate the work a human evaluator.</p>
+
+<h2 id="evaluating-using-a-language-model">Evaluating using a Language Model</h2>
+
+<p>Unlike metrics like <code class="language-bash highlighter-rouge">ROUGE</code> or <code class="language-bash highlighter-rouge">BERTScore</code> that rely on comparison to reference summaries, the <code class="language-bash highlighter-rouge">gpt-4</code> based evaluator assesses the quality of generated content based solely on the input prompt and text, without any ground truth references. This makes it applicable to new datasets and tasks where human references are not available.</p>
+
+<p>Here’s an overview of this method:</p>
+<ol>
+  <li>Using the four criteria used by human, coherence, consistency, fluency, and relevance.</li>
+  <li>Create a prompt that will ask the LLM to generate a score form 1 to 5 for each of those criteria using chain of thought generation.</li>
+  <li>We generate scores from  the language model with the defined prompts, comparing them across summaries.</li>
+</ol>
+
+<p>Note that LLM-based metrics could have a bias towards preferring LLM-generated texts over human-written texts. Additionally LLM based metrics are sensitive to system messages/prompts. Sometimes you don’t have an LLM available for evaluation and you need to stick to traditional metrics.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In this post, we highlight evaluation methods for summarization, discuss the different types of summarization evaluation, and show the pros and cons of each method. The right metrics for your summarization project depend on the engagement of your stakeholders. When they are engaged, ask them for reference summaries and fine-tune your prompts to obtain good metrics using the reference texts. Alternatively, you can ask them to evaluate different summaries generated by various prompts and different LLMs. If there is no engagement from the stakeholders from the beginning, prefer reference-free metrics.</p>
+
+<p>Sources:</p>
+<ol>
+  <li>Liu Y, Iter D, Xu Y, Wang S, Xu R, Zhu C. (2023). <a href="https://arxiv.org/pdf/2303.16634.pdf">G-EVAL: NLG Evaluation Using GPT-4 with Better Human Alignment</a>.</li>
+  <li>Zhang T, Kishore V, Wu F, Weinberger KQ, Artzi Y. (2020). <a href="https://arxiv.org/abs/1904.09675">BERTScore: Evaluating Text Generation with BERT</a>.</li>
+  <li>Lin CY. (2004). <a href="https://aclanthology.org/W04-1013/">ROUGE: A Package for Automatic Evaluation of Summaries</a>.</li>
+  <li>Fabbri A, et al. (2021). <a href="https://aclanthology.org/2021.tacl-1.24">SummEval: Re-evaluating Summarization Evaluation</a>.</li>
+  <li>Yan, Ziyou. (2023). <a href="https://eugeneyan.com/writing/abstractive/">Evaluation &amp; Hallucination Detection for Abstractive Summaries</a>.</li>
+  <li>He T, et al. (2008). ROUGE-C: A fully automated evaluation method for multi-document summarization. 2008 IEEE International Conference on Granular Computing, Hangzhou, China, pp. 269-274. doi: <a href="https://doi.org/10.1109/GRC.2008.4664680">10.1109/GRC.2008.4664680</a>.</li>
+  <li><a href="https://sbert.net/examples/sentence_transformer/training/nli/README.html">Natural Language Inference with Sentence Transformer</a>.</li>
+</ol>
+
+
+    </div>
+
+    
+<hr>
+
+<aside id="comments" class="disqus">
+  <h3><i class="icon icon-comments-o"></i> Comments</h3>
+  <div id="disqus_thread"></div>
+  <script>
+    var disqus_config = function() {
+      this.page.url = 'http://localhost:4000/evaluation-metrics-for-summarization';
+      this.page.identifier = '/evaluation-metrics-for-summarization';
+    };
+    (function() {
+      var d = document,
+      s = d.createElement('script');
+      s.src = 'https://espoirmurhabazi.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+</aside>
+
+
+  </div>
+
+</article>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <ul class="social">
+  <li><a href="https://github.com/espoirMur" target="_blank"><i class="icon icon-github"></i></a></li>
+  <li><a href="https://twitter.com/esp_py" target="_blank"><i class="icon icon-twitter"></i></a></li>
+  <li><a href="https://www.linkedin.com/in/espoirMur/" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+  <li><a href="https://stackoverflow.com/users/4683950/espoir-murhabazi" target="_blank"><i class="fa-brands fa-stack-overflow"></i></a></li>
+</ul>
+
+    <p class="txt-medium-gray">
+      <small>&copy;2025 All rights reserved. Made with <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> and ♥</small>
+    </p>
+  </div>
+</footer>
+
+
+</body>
+</html>
