@@ -13,6 +13,7 @@ tags: NLI, Generation, Summarization
 published: true
 is_draft: false
 ---
+
 > Everyone wants GenAI, but no one wants to spend time on evaluation or generating reference texts.
 
 I worked on a summarization project recently but I have never spent time evaluating the summarization output. My summarizer [balobi.info](https://balobi.info/) makes a lot of mistakes: sometimes it generates news in English, other times it confuses Congo and Rwanda, or sometimes it makes up stuff. Those errors could have been avoided if I had spent time evaluating the metrics and deciding which metrics I could use for my model.

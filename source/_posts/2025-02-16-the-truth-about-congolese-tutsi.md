@@ -37,7 +37,7 @@ In Rwanda, we have three major ethnic groups: the Tutsi, the Hutu, and the Twa.
 * The twa: are pygmies as we call them in Congo.
 * Hybrides or mixed, those who are a mixture of those two tribes
 
-PS: The concept of tribes is very controversial in Rwanda. It led to one of the biggest attrocity of the century the Rwandan Genocide in 2024.
+PS: The concept of tribes is very controversial in Rwanda. It led to one of the biggest attrocity of the century the Rwandan Genocide in 1994.
 
 I have also learned from some of my Rwandan friends that it has been time that Belgian could be awarded the ethnicity Tutsi based on their merits in the society or based on the number of cows they own.
 
