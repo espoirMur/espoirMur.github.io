@@ -25,7 +25,7 @@ It is impossible to write about the Congolese Tutsi without mentioning the chang
 
 
 
-This post is my summary of books on this topic written by Congolese, Rwandan, and Belgian authors, as well as a summary of my experience of this war as someone who lived in the region. For those who are interested in the topic, I will list books in the conclusion of this post where you can read more about the Congo Wars.
+This post is my summary of books on this topic written by Congolese, Rwandan, and Western authors, as well as a summary of my experience of this war as someone who lived in the region. For those who are interested in the topic, I will list books in the conclusion of this post where you can read more about the Congo Wars.
 
 So, Tokende... 🚀
 
@@ -33,9 +33,9 @@ So, Tokende... 🚀
 
 ### La Loi Bisengimana
 
-During the first part of Mobutu's reign in Congo (1965–1980), the political situation in Congo in general was calm. Congo had an amazing and strong relationship with both Rwanda and Burundi. It was during this period that the CEPGL, a regional organization that includes Rwanda, Burundi, and Congo, was created.
+During the first part of Mobutu's reign in Congo (1965–1980), the political situation in Congo in general was calm. Congo had an amazing and strong relationship with both Rwanda and Burundi. It was during this period that the CEPGL(Communauté Économique des Pays des Grands Lacs), a sub-regional organization that includes Rwanda, Burundi, and Congo was created.
 
-{% include image.html name="kabila-habyarimana.png" caption=" Mobutu and Habyarimana" %}
+{% include image.html name="kabila-habyarimana.png" caption="Mobutu and Juvénal Habyarimana, the former Rwandan President! Fun fact: the relationship between Mobutu and Habyarimana was so strong that when Habyarimana died in 1994, Mobutu kept his corpse in his house in Gemena for 3 years before burying him in 1997." %}
 
 Also during this period, Mobutu appointed Barthélemy Bisengimana Rwema, a Tutsi refugee from Rwanda as his Chief of Staff from 1970 to 1982.
 
@@ -60,7 +60,7 @@ Here is a section from that law in French:
 
 > Est zaïrois aux termes de l'article 11 de la Constitution, à la date du 30 juin 1960, toute personne dont un des ascendants est ou a été membre d'une des tribus établies sur le territoire de la République du Zaïre dans ses limites du 1er août 1885, telles que modifiées par les conventions subséquentes.
 
-This law was controversial among all the Tutsi and Banyarwanda living in Congo at that time. And it was when their complaints started. With this law, we can easily see that all the Tutsi who came to Congo after 1885 were without Congolese nationality and also without Rwandan nationality. In other words, they were “apatride” (stateless). They started the legal fight for their nationality and even wrote a letter to the UN. [*La Guerre à l'Est* Reference]
+This law was controversial among all Banyarwanda(people originated from Rwanda): Tutsi or Hutu living in Congo at that time. And it was when their complaints started. With this law, we can easily see that all the Tutsi who came to Congo after 1885 were without Congolese nationality and also without Rwandan nationality. In other words, they were “apatride” (stateless). They started the legal fight for their nationality and even wrote a letter to the UN. [*La Guerre à l'Est* Reference]
 
 After Bisengimana retired from office (1980–1990), Tutsi did not hold any political position in Zaire. However, they kept on doing their cattle business and became financially powerful even without political support. [Cite *The Path of a Genocide*]
 
@@ -144,15 +144,15 @@ However Congolese are also to blame for everything they did here, Yes Kabila, Ye
 
 
 
-James K., Kagame, all the Rwandan and Ugandan soldiers in Congo were not happy with the treatment Kabila gave them in Kinshasa. They fled back to the East and started a new rebellion with the mission to control the East Congo region and kick Kabila out of power.
+James Kabarebe, Kagame, and all the Rwandan and Ugandan soldiers in Congo were not happy with the treatment they received from Kabila in Kinshasa. They fled back to the East and started a new rebellion with the mission to control the East Congo region and remove Kabila from power.
 
-In August 1998, well-known Tutsi leaders from AFDL (Bizima Karaha, Déogratias Bugera, Moïse Nyarugabo), some old Mobutists (Alexis Tambwe Mwamba, Lunda Bululu, Wamba dia Wamba, etc.), went ahead and created a new movement: *Rassemblement Congolais pour la Démocratie* (RCD). On the other hand, Jean-Pierre Bemba started his movement called the MLC and controlled the Equateur Province in North Congo.
+In August 1998, well-known Tutsi leaders from AFDL (Bizima Karaha, Déogratias Bugera, Moïse Nyarugabo), some old Mobutists (Alexis Tambwe Mwamba, Lunda Bululu, Wamba dia Wamba, etc.), went ahead and created a new movement: *Rassemblement Congolais pour la Démocratie* (RCD). On the other hand, Jean-Pierre Bemba started his movement called the Mouvement de Liberation du Congo (MLC) and controlled the Equateur Province in North Congo.
 
 ### La fameuse bataille de Kitona: The Kitona Battle!
 
 At this time, James was leading the army branch of the rebellion. A month after being fired by Kabila, he took a plane in Goma and tried to fly to Kitona in the Bas-Congo province, 573 km from Kinshasa. With the help of Congolese troops who were still faithful to him, he managed to control Kitona airport and flew in other Rwandan troops from the Goma airport to Kitona to take over Kinshasa. With Kitona under his control, he cut power to Kinshasa from the Inga power plant.
 
-Kabila felt attacked and went to ask his allies from SADC for military protection!
+Kabila felt attacked and went to ask his allies from The Southern African Development Community (SADC)  for military protection!
 
 Zimbabwe and Namibia gave him troops, and later Angolans gave him support as well! That army went back and fought James Kabarebe and other Tutsi soldiers, preventing them from taking over Kinshasa! James managed to escape via Angola and went back to where he came from. The Kitona Battle is a master class of war in the Central Africa region. I think we should teach it in all military schools. You can read more about it in this [post](https://www.reddit.com/r/Kenya/comments/1eudtpt/operation_kitona_the_most_daring_operation_of_the/?share_id=ivTKrzxbQLAuZybhPkRfl&utm_content=1&utm_medium=ios_app&utm_name=ioscss&utm_source=share&utm_term=1), which summarizes it very well.
 
@@ -161,7 +161,7 @@ Zimbabwe and Namibia gave him troops, and later Angolans gave him support as wel
 During this time, the country was divided. On one hand, we had the RCD, which was controlling the East Congo region with the support of Rwanda. On the other hand, we had the MLC controlling the North-West side of Congo and the North-East side of the country with the support of Uganda
 Those different parties fought against each other and killed a lot of the civilian population.
 
-This war was more like an African war, with two big regional blocks, SADC and EAC, fighting against each other in Congo. We even had a time when Ugandan and Rwandan troops battled against each other in Kisangani. You can read *The African World War* by Gérard Prunier to understand every other African country's involvement in this war.
+This war was more like an African war, with two big regional blocks, SADC and East African Community (EAC), fighting against each other in Congo. We even had a time when Ugandan and Rwandan troops battled against each other in Kisangani. You can read *The African World War* by Gérard Prunier to understand every other African country's involvement in this war.
 
 At this time, the UN and Western countries condemned Rwanda and asked Kigali to withdraw its troops from Congo. However, Kabila was a bit resistant to diplomatic initiatives and wanted to put an end to the rebels once and for all on a military level. At the same time, a lot of diplomatic initiatives were being made to stop the war.
 
@@ -188,7 +188,7 @@ On the RCD, Yes Rwanda was the mastermind of that movement and they are responsi
 
 ## Dialogue Inter-Congolais and Accord de Sun City: 2002
 
-In February 2002, a year after taking power, Joseph Kabila initiated what would be one of the biggest achievements of his reign. In Sun City, South Africa, with Thabo Mbeki, they concluded the peace talks with all the belligerents. The dialogue, under the mediation of Thabo Mbeki, was supposed to bring together all the Congolese belligerents to bring peace to the region.
+In February 2002, a year after taking power, Joseph Kabila initiated what would be one of the biggest achievements of his reign. In Sun City, South Africa, with Thabo Mbeki, they concluded the peace talks with all the belligerents. The dialogue, under the mediation of Thabo Mbeki, brought together all the Congolese belligerents to bring peace to the region.
 
 The first rebel to accept the peace deal was Jean-Pierre Bemba. At first, Azarias Ruberwa, the RCD leader backed by Rwanda, was reluctant to accept the peace deal and said that Congo would not be reunited and there would be no peace. [Cite *Africa's World War*.] Kigali tried in vain to stop the peace deal but failed.
 
@@ -198,7 +198,7 @@ I remember the scene in Bukavu; we could see motorcycles moving around and peopl
 
 ### 4 People Sharing the Leadership of the Country: 1 + 4
 
-Jean-Pierre Bemba became the Vice President, and a former RCD leader, Munyamulenge Azarias Ruberwa, also became Vice President. On top of them, Herodia from PPRD, an old Chief of Staff of Laurent-Désiré Kabila, and Arthur Zahidi Ngoma from the civil society also became Vice Presidents, leading to what we call today the 1 + 4 government. Note that Étienne Tshisekedi, the father of the current president and leader of UDPS, refused to participate in the government.
+Jean-Pierre Bemba became the Vice President, and a former RCD leader, Munyamulenge Azarias Ruberwa, also became Vice President. On top of them, Herodia from PPRD, an old Chief of Staff of Laurent-Désiré Kabila, and Arthur Zahidi Ngoma from the civil society also became Vice Presidents, leading to what we call today the 1 + 4 government. Note that Étienne Tshisekedi, the father of the current president and leader of UDPS, refused to participate in the government and therefore he remained in the opposition.
 
 
 ### Pretext for the next war:
@@ -215,11 +215,11 @@ In this constitution, the Banyamulenge and all the Tutsi who lived in Congo were
 
 ### Well Let conclude now.
 
-That is all for this long post. It took me a lot of time to put together, but I talked about what I was supposed to talk about—the Congolese Tutsi—though I ended up talking a lot about the Congolese wars.
+That is all for this long post. It took me a lot of time to put together, but I talked about what I was supposed to talk about—the Congolese Tutsi though I ended up talking a lot about the Congolese wars.
 
 In this post, I started by highlighting the first two laws that removed Congolese nationality from Tutsi living in Congo. Then, I wrote a little bit about the two Congolese wars, and finally, I talked about how Kabila initiated the Congo Dialogue and brought peace to Congo. In my next post, I will talk about the other war that started in Kivu around 2006, the CNDP war, which was one of the precursors of the first M23 movement, and I will talk about the current M23 movement.
 
-To write this, I read the following books. I will give my full review of the books on this war in another post as well:
+To write this, I read the books in the reference section of this article. I will give my full review of the books on this war in another post as well.
 
 How many future posts have I promised so far... Lool🤪
 
