@@ -36,7 +36,7 @@ My dream was to find a specialized master in Natural language processing or comp
 
 ## The Application Process
 
-{% include image.html name="https://lh6.googleusercontent.com/Sk5MSRpTRSYxLIfvDHzd5WDqRlHLWNUonEr7nXG0albajremxmTQC4kP6zPAQPHrn-lkf4gC5ztC8imUeIlxeiXI4p3eGyelVBE8ip8lE4efMYroUv7hBHYzUQ2ayYZQsB4zR7KC"  %}
+{% include image.html name="https://lh6.googleusercontent.com/Sk5MSRpTRSYxLIfvDHzd5WDqRlHLWNUonEr7nXG0albajremxmTQC4kP6zPAQPHrn-lkf4gC5ztC8imUeIlxeiXI4p3eGyelVBE8ip8lE4efMYroUv7hBHYzUQ2ayYZQsB4zR7KC"%}
 
 ## The IELTS Tests
 
