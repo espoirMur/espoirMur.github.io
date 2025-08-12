@@ -1,9 +1,9 @@
 ---
 layout: post
-title: "Get ready for your Chevening Application 🚀 :  A Collection of useful resources. "
+title: "Get ready for your Chevening Application 🚀 :  A Collection of useful resources.🔖"
 permalink: resources-to-prepare-for-chevening-application
 date: 2025-08-06 19:11:47
-comments: true🔖
+comments: true
 description: "A collection of different resources:  blog posts and videos that will help you to prepare for your chevening application. 🚀 #Chevening #Scholarship #StudyInUK"
 keywords: "Chevening, Scholarship, StudyInUK, ChosenForChevening"
 published: true
