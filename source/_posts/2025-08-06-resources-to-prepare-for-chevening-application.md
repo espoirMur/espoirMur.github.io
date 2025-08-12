@@ -115,7 +115,7 @@ Here are some resources I have collected:
 For computer science schools, I recommend a ranking that considers university output (research papers by their faculty members are more accurate). That’s why for the CS field I consider [this ranking](http://csrankings.org/#/index?mlmining&nlp&uk).
 - In order to get into a university, you need to write a statement of purpose. [This](http://writeivy.com/structure-is-magic-a-guide-to-the-graduate-sop/) is the most important guide for SOP writing.
 - A couple of years ago, I wrote about my experience applying to universities. You can read about it [here](https://www.murhabazi.com/blog/2021/lessons-learned-while-applying-to-masters-degrees-in-the-uk/).
-- [The Grad Admission SubReddit](https://www.reddit.com/r/gradadmissions/)
+- [Resource for Writing a good Statement of Purpose](https://www.reddit.com/r/gradadmissions/comments/zn0u1d/resources_for_writing_a_statement_of_purpose/)
 - [The Statement of Purpose SubReddit](https://www.reddit.com/r/StatementOfPurpose/)
 
 That’s all I had to share on Chevening and university applications. For anyone applying for Chevening this year, good luck! If you have any other resources, feel free to add them in the comments. 
