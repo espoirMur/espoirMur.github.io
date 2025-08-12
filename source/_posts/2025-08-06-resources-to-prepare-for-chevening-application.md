@@ -15,9 +15,13 @@ is_draft: false
 
 It is that time of the year when the Chevening Application Opened! In fact it have opened for a couple of days now! 
 
-I was awarded the scholarship in 2021 and since then I have been collecting resources to help applicants crafting a strong application that will help them to be selected for the so called  _of the most prestigious scholarship  an African can dream off_. 
+I was awarded the scholarship in 2021 and since then I have been collecting resources to help applicants crafting a strong application that will help them to be selected for the so called  _the most prestigious scholarship  an African can dream off 🤔_. 
 
-Below is a summary of key resources and guides that will assist you in navigating the application process, crafting effective essays, and increasing your chances of success. Please analyze them one by one and digest them, they answer most of the question you have about the scholarship.
+Below is a summary of key resources and guides that will assist you in navigating the application process, crafting effective essays, and increasing your chances of success. Please analyze them one by one and digest them, they answer most of the question you have about the scholarship. I will divide those resources into two, the first section will contain the blogs for the chevening application, and the second one will contains resources for the universities application.
+
+I assume the reader of this post knows what the Chevening Scholarship is, if that is not the case start from [this post](https://www.chevening.org/about/).
+
+Otherwise tokende! 🚀🚀
 
 # Part One the Chevening Application.
 
@@ -93,24 +97,33 @@ If you have written your essays and want to look at some sample essays, reach ou
 # Part two: The universities
 
 
-In parallel to the chevening application you will need to submit your application to three universities of your choice. 
+In parallel to the Chevening application, you will need to submit your application to three universities of your choice.
 
-Based on my experience I have divided views on the British universities. I see most of them as money making machines that instead of being designed to provide quality education their primary goal is to make money from international students. So be wise when it comes to choosing your university. You need to find the right balance here:  On one hand you have pop universities such as Oxford, Cambridge, Imperial, LSE, etc which are good universities for most of their program but are to hard to get especially for international students. On another hand we have low tiers which make everything to attract international student but they don't deliver any education to them.  In between them you can still find some decent program for your field which are interesting. One day, when I will be motivated enough I will write that guide on UK universities.
+Based on my experience, I have mixed views on British universities. I see most of them as money-making machines that, instead of being designed to provide quality education, primarily aim to profit from international students. So, be wise when choosing your university. You need to find the right balance here:
 
+On one hand, you have top universities such as Oxford, Cambridge, Imperial, LSE, etc., which are prestigious for most of their programs but are very hard to get into, especially for international students.
 
-Here are some resources I have collected :
+On the other hand, there are low-tier universities that do everything to attract international students but fail to deliver a proper education.
 
-- [Universities Ranking](https://www.timeshighereducation.com/world-university-rankings/2019/world-ranking#!/page/0/length/25/sort_by/rank/sort_order/asc/cols/stats) I personally don't think this ranking it is accurate.
-For computer science schools I will consider a ranking that consider university output (research papers by their faculty member more accurate) that is why for CS field I consider [This Ranking](http://csrankings.org/#/index?mlmining&nlp&uk).
-- In order to get to the university you need to write the statement of purpose. [This](http://writeivy.com/structure-is-magic-a-guide-to-the-graduate-sop/) is the most important guide in SOP writing.
-- A couple of years ago I wrote about my experience in applying to universities. You can find about it [here](https://www.murhabazi.com/blog/2021/lessons-learned-while-applying-to-masters-degrees-in-the-uk/).
-- [The Grad Admission SubReddit](https://www.reddit.com/r/gradadmissions/).
-- [The Statement of Purpose SubReddit](https://www.reddit.com/r/StatementOfPurpose/).
+In between them, you can still find some decent programs in your field that are worth considering.
 
-That all I had to share on Chevening and University application, for anyone who is applying for chevening this year good luck. If you have any other resource feel free to add them in comment. Cheers and see you next time for interview preparation guide or any other guide for your chevening application.
+One day, when I’m motivated enough, I’ll write that guide on UK universities.
 
-PS: if you have applied to gone through the guide and you still have question about your application, feel free to [reach to me](murhabazi.com/schedule/) I can give you 15 minutes of my time to speak you about the application.
+Here are some resources I have collected:
 
-For now, see you next time! 
-Cheers... 
+- [Universities Ranking](https://www.timeshighereducation.com/world-university-rankings/2019/world-ranking#!/page/0/length/25/sort_by/rank/sort_order/asc/cols/stats): I personally don't think this ranking is accurate.
+For computer science schools, I recommend a ranking that considers university output (research papers by their faculty members are more accurate). That’s why for the CS field I consider [this ranking](http://csrankings.org/#/index?mlmining&nlp&uk).
+- In order to get into a university, you need to write a statement of purpose. [This](http://writeivy.com/structure-is-magic-a-guide-to-the-graduate-sop/) is the most important guide for SOP writing.
+- A couple of years ago, I wrote about my experience applying to universities. You can read about it [here](https://www.murhabazi.com/blog/2021/lessons-learned-while-applying-to-masters-degrees-in-the-uk/).
+- [The Grad Admission SubReddit](https://www.reddit.com/r/gradadmissions/)
+- [The Statement of Purpose SubReddit](https://www.reddit.com/r/StatementOfPurpose/)
+
+That’s all I had to share on Chevening and university applications. For anyone applying for Chevening this year, good luck! If you have any other resources, feel free to add them in the comments. 
+
+Cheers, and see you next time for the interview preparation guide or any other guide for your Chevening application.
+
+PS: If you have gone through the guide and still have questions about your application, feel free to [reach out to me](https://murhabazi.com/schedule/). I can give you 15 minutes of my time to speak with you about the application.
+
+For now, see you next time!
+Cheers...
 
