@@ -15,7 +15,7 @@ is_draft: false
 
 It is that time of the year when the Chevening Application Opened! In fact it have opened for a couple of days now! 
 
-I was awarded the scholarship in 2021 and since then I have been collecting resources to help applicants crafting a strong application that will help them to be selected for the so called  _the most prestigious scholarship  an African can dream off 🤔_. 
+I was awarded the scholarship in 2021 and since then I have been collecting resources to help applicants crafting a strong application that will help them to be selected for the so called: _most prestigious scholarship  an African can dream off 🤔_. 
 
 Below is a summary of key resources and guides that will assist you in navigating the application process, crafting effective essays, and increasing your chances of success. Please analyze them one by one and digest them, they answer most of the question you have about the scholarship. I will divide those resources into two, the first section will contain the blogs for the chevening application, and the second one will contains resources for the universities application.
 
@@ -23,7 +23,7 @@ I assume the reader of this post knows what the Chevening Scholarship is, if tha
 
 Otherwise tokende! 🚀🚀
 
-# Part One the Chevening Application.
+# Part One: the Chevening Application.
 
 ## **0\. Chevening Application Book: A Good Practical Guide.**
 
