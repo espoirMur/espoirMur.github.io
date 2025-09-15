@@ -5,12 +5,226 @@
     <description>Murhabazi Buzina Espoir Home on the internet</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 11 Aug 2025 22:35:25 +0100</pubDate>
-    <lastBuildDate>Mon, 11 Aug 2025 22:35:25 +0100</lastBuildDate>
+    <pubDate>Mon, 15 Sep 2025 21:56:08 +0100</pubDate>
+    <lastBuildDate>Mon, 15 Sep 2025 21:56:08 +0100</lastBuildDate>
     <generator>Jekyll v4.2.2</generator>
     
       <item>
-        <title>Get ready for your Chevening Application 🚀 :  A Collection of useful resources. </title>
+        <title>Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!</title>
+        <description>&lt;p&gt;Last week I was working on a project, and I was looking for a way to query Postgres to do vector search in  a batch way to send multiple embedding vectors at once to the database and retrieve the data without the need for a for-loop.&lt;/p&gt;
+
+&lt;p&gt;I started googling online and found an old answer on StackOverflow using a query with &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;UNION&lt;/code&gt;s. When I asked Deepseek how to improve the query, it recommended I use a &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;CROSS JOIN LATERAL&lt;/code&gt;, which seemed to be faster than a normal union.&lt;/p&gt;
+
+&lt;p&gt;Then I started digging a little bit deeper to understand what cross lateral joins are. Unfortunately, I couldn’t find any blog online that was explaining them in the context of a vector database, which is why I decided to put this guide together.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-problem&quot;&gt;The problem&lt;/h2&gt;
+&lt;p&gt;Let’s say you have a list of questions and you need to perform an embedding search for all of them at once.
+This can happen when you need to evaluate how an embedding model performs on a set of queries. For each query, you want to retrieve the top 10 relevant chunks.
+In this post, we will work with a document table of this form for simplicity:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;document
+&lt;span class=&quot;nt&quot;&gt;--&lt;/span&gt;
+doc_id: int
+embedding: vector&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1024&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+content: Text
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;recap-on-similarity-search&quot;&gt;Recap on Similarity Search&lt;/h3&gt;
+
+&lt;p&gt;You have a query text that has been embedded into a vector using an embedding model. You want to query your vector database to retrieve similar text to your query using the embedding and cosine similarity as a distance measure.&lt;/p&gt;
+
+&lt;p&gt;Here is how you will perform the query using Postgres with the pgvector extension installed. You would perform something along these lines:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;SELECT &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;1 - &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;embedding&quot;&lt;/span&gt; &amp;lt;&lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; %&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;query_embedding&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;s::vector&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; as similarity, &lt;span class=&quot;s2&quot;&gt;&quot;content&quot;&lt;/span&gt;, &lt;span class=&quot;s2&quot;&gt;&quot;url&quot;&lt;/span&gt; FROM &lt;span class=&quot;s2&quot;&gt;&quot;documents&quot;&lt;/span&gt; ORDER BY similarity desc LIMIT 5
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;If you have been working with RAG, that query is familiar to you.&lt;/p&gt;
+
+&lt;h2 id=&quot;different-approaches-to-solve-the-problem&quot;&gt;Different Approaches to Solve the Problem:&lt;/h2&gt;
+
+&lt;h3 id=&quot;similarity-search-with-multiple-queries&quot;&gt;Similarity search with multiple queries&lt;/h3&gt;
+
+&lt;p&gt;Assuming now that you have 100 or 1000 queries that you want to send to the database and for each query you want to retrieve the corresponding documents.&lt;/p&gt;
+
+&lt;p&gt;A naive Python code would look like this:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;query &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&quot;SELECT (1 - (&quot;&lt;/span&gt;embedding&lt;span class=&quot;s2&quot;&gt;&quot; &amp;lt;=&amp;gt; %({query_embedding})s::vector)) as similarity, &quot;&lt;/span&gt;content&lt;span class=&quot;s2&quot;&gt;&quot;, &quot;&lt;/span&gt;url&lt;span class=&quot;s2&quot;&gt;&quot; FROM &quot;&lt;/span&gt;documents&lt;span class=&quot;s2&quot;&gt;&quot; ORDER BY similarity desc LIMIT 5&quot;&quot;&quot;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;question_embedding &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;embeddings:
+    db_client.execute&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;query, &lt;span class=&quot;nv&quot;&gt;embedding&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;question_embedding&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;With this approach, you can see for each question you will be performing a round trip to the database and retrieve the results. If your database is hosted in a remote server that round trip can be costly for the performance of your application.&lt;/p&gt;
+
+&lt;p&gt;That can be inefficient when you are dealing with hundreds or thousands of vectors. This is why I started thinking that there could be a better way to do this.&lt;/p&gt;
+
+&lt;h3 id=&quot;first-improvement-the-union-all-approach&quot;&gt;First Improvement: The UNION ALL Approach&lt;/h3&gt;
+
+&lt;p&gt;One way that came to my mind was to use the union query. With the union query, our query will look like this.&lt;/p&gt;
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;&quot;embedding&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query_embedding_1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;similarity&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;&quot;content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;&quot;url&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;&quot;documents&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ORDER&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;similarity&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;desc&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;LIMIT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;UNION&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ALL&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;&quot;embedding&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query_embedding_2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;similarity&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;&quot;content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;&quot;url&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;&quot;documents&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ORDER&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;similarity&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;desc&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;LIMIT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;UNION&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ALL&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;&quot;embedding&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query_embedding_n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;similarity&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;&quot;content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;&quot;url&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;&quot;documents&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ORDER&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;similarity&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;desc&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;LIMIT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;A Python code to generate that query would be something like this:&lt;/p&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;base_query&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;SELECT (1 - (&quot;embedding&quot; &amp;lt;=&amp;gt; %(query_embedding_{index})s::vector)) as similarity, &quot;content&quot;, &quot;url&quot; FROM &quot;documents&quot; ORDER BY similarity desc LIMIT 5&quot;&quot;&quot;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;all_queries&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embeddings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;formatted_query&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;base_query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;all_queries&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;formatted_query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;final_query&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot; UNION ALL &quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;all_queries&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;# then you execute using
+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;db&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;final_query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;embeddings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tolist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This will give better performance than the previous one, but there is still room for improvement. And that is when the cross lateral join comes in.&lt;/p&gt;
+&lt;h3 id=&quot;the-superior-solution-cross-join-lateral&quot;&gt;The Superior Solution: Cross Join Lateral&lt;/h3&gt;
+
+&lt;h4 id=&quot;cross-lateral-join&quot;&gt;&lt;strong&gt;Cross lateral join&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;Before diving deep into the SQL aspect of cross lateral join, let’s recap a concept from high school algebra.&lt;/p&gt;
+
+&lt;h4 id=&quot;cartesian-product&quot;&gt;&lt;strong&gt;Cartesian Product&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;The Cartesian product of two sets \(A\) and \(B\), written \(A \times B\), is the set of all ordered pairs in which the first element belongs to \(A\) and the second belongs to \(B\):
+\(A \times B = \{(a, b) \mid a \in A \text{ and } b \in B\}\)
+Let’s assume we have \(A = \{1, 2, 3\}$ and $B = \{A, B, C\}\), the Cartesian product of \(A\) and \(B\) will be the following: \(A \times B = \{(1,A), (1, B), (1,C), (2,A), (2, B), (2,C), (3,A), (3, B), (3,C)\}\).&lt;/p&gt;
+
+&lt;p&gt;We can also note that the cardinality of \(A \times B =  |A| \times |B|\). 
+In our example, we will have the cardinality equal to nine.&lt;/p&gt;
+
+&lt;h4 id=&quot;from-cartesian-product-to-cross-join&quot;&gt;&lt;strong&gt;From Cartesian Product to Cross Join&lt;/strong&gt;&lt;/h4&gt;
+&lt;p&gt;With the Cartesian product in mind, let’s define the cross join:&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;The CROSS JOIN is used to generate a paired combination of each row of the first table with each row of the second table.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Here is an example of two tables and the resulting table from a cross join:&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-09-15-supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search/cross-join.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt; Cross Join in SQL&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;It was taken from this &lt;a href=&quot;https://www.sqlshack.com/sql-cross-join-with-examples/&quot;&gt;site&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Here is the syntax of the cross join. Given two tables &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;Meals&lt;/code&gt; and &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;Drinks&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;SELECT Meals.name, Drinks.Name FROM Meals
+CROSS JOIN Drinks
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;on-to-cross-lateral-join&quot;&gt;On To Cross Lateral Join&lt;/h4&gt;
+&lt;p&gt;What if we found a way to do better? As we have a list of vectors, how can we run the select against each vector in the list of vectors? This is where cross lateral join comes in handy.&lt;/p&gt;
+
+&lt;p&gt;In the Postgres documentation, here is what is said about that query:&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;LATERAL:&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;The LATERAL key word can precede a sub-SELECT FROM item. This allows the sub-SELECT to refer to columns of FROM items that appear before it in the FROM list. (Without LATERAL, each sub-SELECT is evaluated independently and so cannot cross-reference any other FROM item.)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;That is a little bit convoluted and hard to explain.&lt;/p&gt;
+
+&lt;p&gt;Let’s see how it works.&lt;/p&gt;
+
+&lt;h5 id=&quot;the-query&quot;&gt;&lt;em&gt;The Query:&lt;/em&gt;&lt;/h5&gt;
+
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;vector_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;query_index&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;unnest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;ARRAY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector_0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector_1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector_2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;WITH&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ORDINALITY&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vector_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query_vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;CROSS&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;JOIN&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;LATERAL&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;&quot;embedding&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vector_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query_vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;similarity&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;nv&quot;&gt;&quot;content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;nv&quot;&gt;&quot;url&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt;
+      &lt;span class=&quot;nv&quot;&gt;&quot;documents&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;ORDER&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;similarity&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;desc&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;LIMIT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;ORDER&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vector_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;similarity&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;DESC&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h5 id=&quot;deconstructing-the-magic-query&quot;&gt;&lt;em&gt;Deconstructing the Magic Query&lt;/em&gt;&lt;/h5&gt;
+
+&lt;p&gt;Let’s now dissect the query and see how it works. It has two parts.&lt;/p&gt;
+
+&lt;p&gt;Let’s look at the &lt;strong&gt;first one&lt;/strong&gt;. The left part:&lt;/p&gt;
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  &lt;span class=&quot;k&quot;&gt;unnest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;ARRAY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector_0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector_1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector_2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vector&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;WITH&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;ORDINALITY&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;AS&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vector_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query_vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;This part is the temporary table creation where a table is created and has each embedding vector as a row. So our table will have:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;1, vector_0
+2, vector_1
+3, vector_2
+...
+n, vector_n
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;ordinality&lt;/code&gt; keyword adds an index starting from 1 to each row in the returned value of the first part.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Then the second&lt;/strong&gt; part is a cross join. The table on the left is cross-joined with the table on the right. The LATERAL keyword helps to use the left table in the cross join clause. &lt;em&gt;Without it, each sub-SELECT is evaluated independently and so cannot cross-reference any other FROM item.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;That is why in the second item we were able to reference the results of the first select as &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;vector_table.query_vector&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The subquery is:&lt;/p&gt;
+&lt;div class=&quot;language-sql highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    &lt;span class=&quot;k&quot;&gt;SELECT&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;&quot;embedding&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vector_table&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query_vector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;similarity&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;nv&quot;&gt;&quot;content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;nv&quot;&gt;&quot;url&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt;
+      &lt;span class=&quot;nv&quot;&gt;&quot;documents&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;ORDER&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;BY&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;similarity&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;desc&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;LIMIT&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The documentation explains the execution perfectly:&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;When a FROM item contains LATERAL cross-references, evaluation proceeds as follows: for each row of the FROM item providing the cross-referenced column(s)… the LATERAL item is evaluated using that row or row set’s values of the columns. The resulting row(s) are joined as usual with the rows they were computed from. This is repeated for each row or set of rows from the column source table(s).&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;benchmarks&quot;&gt;Benchmarks&lt;/h3&gt;
+&lt;p&gt;Let us benchmark the 3 approaches and find out which one is the fastest.&lt;/p&gt;
+
+&lt;p&gt;We are running the query in a small setting where we have around 10k documents in our database each document has string content and embedding vector of size &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;1024&lt;/code&gt;. The database table is indexed on the embedding column using a &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;hnsw&lt;/code&gt; index. The database and the code where both running on my local machine a Mac M1 with 16GB of CPU.&lt;/p&gt;
+
+&lt;p&gt;Later I will benchmark the three queries in a setting where the code run on a different machine than the database and I will update this section with the performance of the code in those settings.&lt;/p&gt;
+
+&lt;p&gt;After benchmarking and performing an analyzis on the answer with my table I found a small gain of performance on a small table.&lt;/p&gt;
+
+&lt;p&gt;In the upcoming version of this blog I replicate the setting in a table of millions documents and vector and report the performance.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In this post we explained how cross lateral join works with PGVectors. In the next post I will run a benchmark of the cross lateral and compare it with. a normal for loop for batch vector search.&lt;/p&gt;
+
+</description>
+        <pubDate>Mon, 15 Sep 2025 00:00:00 +0100</pubDate>
+        <link>http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search</link>
+        <guid isPermaLink="true">http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search</guid>
+        
+        <category>postgres,</category>
+        
+        <category>pgvector,vectorsearch,sql,rag</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Get ready for your Chevening Application 🚀 :  A Collection of useful resources.🔖</title>
         <description>
 &lt;figure&gt;
   &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-08-06-resources-to-prepare-for-chevening-application/chevener-drc.png&quot; /&gt;&lt;/p&gt;
@@ -19,11 +233,15 @@
 
 &lt;p&gt;It is that time of the year when the Chevening Application Opened! In fact it have opened for a couple of days now!&lt;/p&gt;
 
-&lt;p&gt;I was awarded the scholarship in 2021 and since then I have been collecting resources to help applicants crafting a strong application that will help them to be selected for the so called  &lt;em&gt;of the most prestigious scholarship  an African can dream off&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;I was awarded the scholarship in 2021 and since then I have been collecting resources to help applicants crafting a strong application that will help them to be selected for the so called: &lt;em&gt;most prestigious scholarship  an African can dream off 🤔&lt;/em&gt;.&lt;/p&gt;
 
-&lt;p&gt;Below is a summary of key resources and guides that will assist you in navigating the application process, crafting effective essays, and increasing your chances of success. Please analyze them one by one and digest them, they answer most of the question you have about the scholarship.&lt;/p&gt;
+&lt;p&gt;Below is a summary of key resources and guides that will assist you in navigating the application process, crafting effective essays, and increasing your chances of success. Please analyze them one by one and digest them, they answer most of the question you have about the scholarship. I will divide those resources into two, the first section will contain the blogs for the chevening application, and the second one will contains resources for the universities application.&lt;/p&gt;
 
-&lt;h1 id=&quot;part-one-the-chevening-application&quot;&gt;Part One the Chevening Application.&lt;/h1&gt;
+&lt;p&gt;I assume the reader of this post knows what the Chevening Scholarship is, if that is not the case start from &lt;a href=&quot;https://www.chevening.org/about/&quot;&gt;this post&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Otherwise tokende! 🚀🚀&lt;/p&gt;
+
+&lt;h1 id=&quot;part-one-the-chevening-application&quot;&gt;Part One: the Chevening Application.&lt;/h1&gt;
 
 &lt;h2 id=&quot;0-chevening-application-book-a-good-practical-guide&quot;&gt;&lt;strong&gt;0. Chevening Application Book: A Good Practical Guide.&lt;/strong&gt;&lt;/h2&gt;
 
@@ -103,26 +321,36 @@
 
 &lt;h1 id=&quot;part-two-the-universities&quot;&gt;Part two: The universities&lt;/h1&gt;
 
-&lt;p&gt;In parallel to the chevening application you will need to submit your application to three universities of your choice.&lt;/p&gt;
+&lt;p&gt;In parallel to the Chevening application, you will need to submit your application to three universities of your choice.&lt;/p&gt;
 
-&lt;p&gt;Based on my experience I have divided views on the British universities. I see most of them as money making machines that instead of being designed to provide quality education their primary goal is to make money from international students. So be wise when it comes to choosing your university. You need to find the right balance here:  On one hand you have pop universities such as Oxford, Cambridge, Imperial, LSE, etc which are good universities for most of their program but are to hard to get especially for international students. On another hand we have low tiers which make everything to attract international student but they don’t deliver any education to them.  In between them you can still find some decent program for your field which are interesting. One day, when I will be motivated enough I will write that guide on UK universities.&lt;/p&gt;
+&lt;p&gt;Based on my experience, I have mixed views on British universities. I see most of them as money-making machines that, instead of being designed to provide quality education, primarily aim to profit from international students. So, be wise when choosing your university. You need to find the right balance here:&lt;/p&gt;
 
-&lt;p&gt;Here are some resources I have collected :&lt;/p&gt;
+&lt;p&gt;On one hand, you have top universities such as Oxford, Cambridge, Imperial, LSE, etc., which are prestigious for most of their programs but are very hard to get into, especially for international students.&lt;/p&gt;
+
+&lt;p&gt;On the other hand, there are low-tier universities that do everything to attract international students but fail to deliver a proper education.&lt;/p&gt;
+
+&lt;p&gt;In between them, you can still find some decent programs in your field that are worth considering.&lt;/p&gt;
+
+&lt;p&gt;One day, when I’m motivated enough, I’ll write that guide on UK universities.&lt;/p&gt;
+
+&lt;p&gt;Here are some resources I have collected:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://www.timeshighereducation.com/world-university-rankings/2019/world-ranking#!/page/0/length/25/sort_by/rank/sort_order/asc/cols/stats&quot;&gt;Universities Ranking&lt;/a&gt; I personally don’t think this ranking it is accurate.
-For computer science schools I will consider a ranking that consider university output (research papers by their faculty member more accurate) that is why for CS field I consider &lt;a href=&quot;http://csrankings.org/#/index?mlmining&amp;amp;nlp&amp;amp;uk&quot;&gt;This Ranking&lt;/a&gt;.&lt;/li&gt;
-  &lt;li&gt;In order to get to the university you need to write the statement of purpose. &lt;a href=&quot;http://writeivy.com/structure-is-magic-a-guide-to-the-graduate-sop/&quot;&gt;This&lt;/a&gt; is the most important guide in SOP writing.&lt;/li&gt;
-  &lt;li&gt;A couple of years ago I wrote about my experience in applying to universities. You can find about it &lt;a href=&quot;https://www.murhabazi.com/blog/2021/lessons-learned-while-applying-to-masters-degrees-in-the-uk/&quot;&gt;here&lt;/a&gt;.&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://www.reddit.com/r/gradadmissions/&quot;&gt;The Grad Admission SubReddit&lt;/a&gt;.&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://www.reddit.com/r/StatementOfPurpose/&quot;&gt;The Statement of Purpose SubReddit&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.timeshighereducation.com/world-university-rankings/2019/world-ranking#!/page/0/length/25/sort_by/rank/sort_order/asc/cols/stats&quot;&gt;Universities Ranking&lt;/a&gt;: I personally don’t think this ranking is accurate.
+For computer science schools, I recommend a ranking that considers university output (research papers by their faculty members are more accurate). That’s why for the CS field I consider &lt;a href=&quot;http://csrankings.org/#/index?mlmining&amp;amp;nlp&amp;amp;uk&quot;&gt;this ranking&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;In order to get into a university, you need to write a statement of purpose. &lt;a href=&quot;http://writeivy.com/structure-is-magic-a-guide-to-the-graduate-sop/&quot;&gt;This&lt;/a&gt; is the most important guide for SOP writing.&lt;/li&gt;
+  &lt;li&gt;A couple of years ago, I wrote about my experience applying to universities. You can read about it &lt;a href=&quot;https://www.murhabazi.com/blog/2021/lessons-learned-while-applying-to-masters-degrees-in-the-uk/&quot;&gt;here&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.reddit.com/r/gradadmissions/comments/zn0u1d/resources_for_writing_a_statement_of_purpose/&quot;&gt;Resource for Writing a good Statement of Purpose&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.reddit.com/r/StatementOfPurpose/&quot;&gt;The Statement of Purpose SubReddit&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;That all I had to share on Chevening and University application, for anyone who is applying for chevening this year good luck. If you have any other resource feel free to add them in comment. Cheers and see you next time for interview preparation guide or any other guide for your chevening application.&lt;/p&gt;
+&lt;p&gt;That’s all I had to share on Chevening and university applications. For anyone applying for Chevening this year, good luck! If you have any other resources, feel free to add them in the comments.&lt;/p&gt;
 
-&lt;p&gt;PS: if you have applied to gone through the guide and you still have question about your application, feel free to &lt;a href=&quot;murhabazi.com/schedule/&quot;&gt;reach to me&lt;/a&gt; I can give you 15 minutes of my time to speak you about the application.&lt;/p&gt;
+&lt;p&gt;Cheers, and see you next time for the interview preparation guide or any other guide for your Chevening application.&lt;/p&gt;
 
-&lt;p&gt;For now, see you next time! 
+&lt;p&gt;PS: If you have gone through the guide and still have questions about your application, feel free to &lt;a href=&quot;https://murhabazi.com/schedule/&quot;&gt;reach out to me&lt;/a&gt;. I can give you 15 minutes of my time to speak with you about the application.&lt;/p&gt;
+
+&lt;p&gt;For now, see you next time!
 Cheers…&lt;/p&gt;
 
 </description>
@@ -2856,142 +3084,6 @@ I0329 18:42:18.520315 1 http_server.cc:282] Started Metrics Service at 0.0.0.0:8
         <pubDate>Sun, 07 Apr 2024 23:12:57 +0100</pubDate>
         <link>http://localhost:4000/deploying-language-model-with-onnx-runtime-on-triton-inference-server</link>
         <guid isPermaLink="true">http://localhost:4000/deploying-language-model-with-onnx-runtime-on-triton-inference-server</guid>
-        
-        
-      </item>
-    
-      <item>
-        <title>Getting Started with Seldon-core and Kubernetes, Part 1: My Struggles with Kubernetes</title>
-        <description>
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2023-03-07-struggles-with-docker/container-repair.png&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt; Mechanic fixing container image by : &lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;p&gt;Learning Kubernetes has been on my bucket list for years. I always said that when I had the time, I would learn it because it is one of those tools missing from my developer toolbox.&lt;/p&gt;
-
-&lt;p&gt;In January, I decided to start my learning journey. I watched this amazing video, which gave me a basic overview of Kubernetes components, and I managed to install it on my local laptop.&lt;/p&gt;
-
-&lt;p&gt;To practice, I used Kubernetes to deploy a machine learning model. After researching, I found out that there are currently two tools used to deploy machine learning models using Kubernetes: Kserve and Seldon-core. After struggling to run Kserve on my machine, I decided to go with Seldon-core because it was well-documented and seemed more mature compared to Kserve. While following the getting started tutorial on Seldon-core, I encountered some bugs that tested my knowledge of Kubernetes. In this post, I will write about some of them, how I encountered them, and the lessons I learned from them.&lt;/p&gt;
-
-&lt;p&gt;The tutorial describes how to create a machine learning service on top of Kubernetes that will be used to make predictions.&lt;/p&gt;
-
-&lt;p&gt;My troubles and bugs started when I ran the following command to create the Seldon deployment:&lt;/p&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2023-03-07-struggles-with-docker/seldon-core.png&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;Overview of Seldon Core Components&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;yaml
-&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;kubectl apply &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; - &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;END&lt;/span&gt;&lt;span class=&quot;sh&quot;&gt;
-apiVersion: machinelearning.seldon.io/v1
-kind: SeldonDeployment
-metadata:
-  name: iris-model
-  namespace: seldon
-spec:
-  name: iris
-  predictors:
-  - graph:
-      implementation: SKLEARN_SERVER
-      modelUri: gs://seldon-models/v1.16.0-dev/sklearn/iris
-      name: classifier
-    name: default
-    replicas: 1
-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;END
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;This command was supposed to start a SeldonDeployment, which consists of a deployment, a service, and a pod running the model. I hoped that the command would run successfully, but it didn’t. Over the past three days, I faced different errors that made me learn more about Kubernetes. Let me talk about the first one.&lt;/p&gt;
-
-&lt;h2 id=&quot;downgrading-kubernetes-version-with-docker-desktop&quot;&gt;Downgrading Kubernetes version with Docker Desktop.&lt;/h2&gt;
-&lt;p&gt;I don’t remember many details about the first bug I faced because I didn’t document it much. I remember using Docker Desktop as a backend for Kubernetes, and it was using Kubernetes 1.26. The fix for the issue was to use a lower version of Kubernetes, such as 1.24, but with Docker Desktop, there is no way to downgrade the version of Kubernetes. I had to switch to using Minikube; with it, I could specify the version of Kubernetes to use. Here is the command I used to downgrade it:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;minikube start &lt;span class=&quot;nt&quot;&gt;--kubernetes-version&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;v1.24.1&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;unable-to-pull-the-large-images-in-the-pod&quot;&gt;Unable to pull the large images in the pod.&lt;/h2&gt;
-
-&lt;p&gt;After solving the first issue, I faced another one. I noticed my pod was not starting, so I decided to debug the pod to find out what was going wrong. When I checked the pod’s status, I found that it was stuck with this message: Error: ImagePullBackOff. I ran the following command:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl describe pod PodName &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; podNamespace.&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;And I ended up with the following error message:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-  Normal   Scheduled  13m   default-scheduler  Successfully assigned seldon/xgboost-default-0-classifier-786f456bd4-jxjm6 to minikube
-  Normal   Pulled     13m   kubelet   Container image &lt;span class=&quot;s2&quot;&gt;&quot;seldonio/rclone-storage-initializer:1.15.0&quot;&lt;/span&gt; already present on machine
-  Normal   Created    13m   kubelet   Created container classifier-model-initializer
-  Normal   Started    13m   kubelet   Started container classifier-model-initializer
-  Warning  Failed     10m   kubelet   Error: ErrImagePull
-  Warning  Failed     10m   kubelet   Failed to pull image &lt;span class=&quot;s2&quot;&gt;&quot;seldonio/xgboostserver:1.15.0&quot;&lt;/span&gt;: rpc error: code &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; Unknown desc &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; context deadline exceeded
-  Normal   Pulled     10m   kubelet   Container image &lt;span class=&quot;s2&quot;&gt;&quot;docker.io/seldonio/seldon-core-executor:1.15.0&quot;&lt;/span&gt; already present on machine
-  Normal   Created    10m   kubelet   Created container seldon-container-engine
-  Normal   Started    10m   kubelet   Started container seldon-container-engine
-  Normal   BackOff    9m58s &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;x2 over 9m59s&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;   kubelet   Back-off pulling image &lt;span class=&quot;s2&quot;&gt;&quot;seldonio/xgboostserver:1.15.0&quot;&lt;/span&gt;
-  Warning  Failed     9m58s &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;x2 over 9m59s&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;   kubelet   Error: ImagePullBackOff
-  Normal   Pulling    9m45s &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;x2 over 13m&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;     kubelet   Pulling image &lt;span class=&quot;s2&quot;&gt;&quot;seldonio/xgboostserver:1.15.0&quot;&lt;/span&gt;
-  Warning  Unhealthy  3m14s &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;x84 over 9m39s&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;  kubelet   Readiness probe failed: HTTP probe failed with statuscode: 503
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The first lines of the logs show that Kubernetes could not pull the image for my container:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubelet Failed to pull image &lt;span class=&quot;s2&quot;&gt;&quot;seldonio/xgboostserver:1.15.0&quot;&lt;/span&gt;: rpc error: code &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; Unknown desc &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; context deadline exceeded&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;Initially, I thought that my pod was not connected to the internet because it could not pull the container image, but that was not the case. On closer inspection, I found that the pod could pull the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;docker.io/seldonio/seldon-core-executor:1.15.0&lt;/code&gt; container image and was starting the executor container but not the MLServer image.&lt;/p&gt;
-
-&lt;p&gt;After several hours of debugging, I discovered that the error was due to the size of my image and the timeout while pulling the image for the first time. The container was trying to pull the images, but it took a long time to pull, and the container timed out. After Googling, two possible workarounds were suggested:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Increase the size of the runtime timeout to a larger time and hope it will work.&lt;/li&gt;
-  &lt;li&gt;Download the images with a separate command and run the container once the image is downloaded in the machine.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;To apply the first workaround, I had to run the following command:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;minikube ssh &lt;span class=&quot;s2&quot;&gt;&quot;sudo sed -i 's/KUBELET_ARGS=/KUBELET_ARGS=--runtime-request-timeout=TIME /g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf &amp;amp;&amp;amp; sudo systemctl daemon-reload &amp;amp;&amp;amp; sudo systemctl restart kubelet&quot;&lt;/span&gt;&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;I tried it, but it didn’t work in my case, so I had to use the second method, which consists of downloading the image separately inside Minikube. I used the following command:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;minikube image load seldonio/sklearnserver:1.15.0&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;The image was large and took approximately 10 minutes to download, maybe because my internet connection this weekend was not at its best. But after that, I passed that issue, but that was not all. There was another bug waiting for me:&lt;/p&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2023-03-07-struggles-with-docker/car-fails-to-start.jpeg&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;Car failing to start&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;h2 id=&quot;readiness-probe-failed&quot;&gt;Readiness probe failed&lt;/h2&gt;
-
-&lt;p&gt;When I described my pod, I found that the image was pulled and the container was running for a few seconds, and then it stopped with this message:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubelet Readiness probe failed: HTTP probe failed with statuscode: 503&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;When I read about the error message, I found that Kubernetes uses readiness probes to know if a container is ready to accept traffic. The service keeps sending the request to the pod until the pod is ready to accept the traffic. So it was not passing that status. It is an error on the container side. But the container was stopped; how could I log in to a stopped container? I found this command:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl logs podName &lt;span class=&quot;nt&quot;&gt;-c&lt;/span&gt; ContainerName &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;seldon&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;By checking the log of the container to my satisfaction, I found that the container was failing because of an error with the Python image. I fixed it by changing the container image I used in my deployment. Then I had everything running.&lt;/p&gt;
-
-&lt;p&gt;With the pod running and the service working, how could I connect to the container inside a cluster? I had to create an ingress component connecting to the external service serving my pod on port 9000, where the model was running. I did everything to set up the ingress, but I could not connect to the internal service on my Mac.&lt;/p&gt;
-
-&lt;p&gt;I spent quite some time learning about Kubernetes networking and how services work, but networking is out of the scope of this tutorial. In the short term, I had to use tunneling to access my ingress from outside the container.&lt;/p&gt;
-
-&lt;p&gt;Thanks to this &lt;a href=&quot;https://stackoverflow.com/a/73735009/4683950&quot;&gt;stackoverflow question&lt;/a&gt;, which provided the steps to solve the issue, I finally managed to access the deployment. However, when I attempted to access the URL, I discovered that it was not working and all of the endpoints on the server were returning a 404 error. Although I have not yet solved the issue, I plan to do so soon.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Yes, I did struggles a lot, but this was a good learning lesson for me.  I learned how to debug containers on kubernetes and how minikube works with kuberenetes. I also learn some bit of kubernetes networking. I hope this post will serve my future self if I am facing the same issue as well as anyone else who is struggling with those bugs. My journey is not completed yet, I haven’t managed to deploy a large language model on Kubernetes, I am still struggling with that. In part two of this post I will talk about how I managed to deploy a transformer model with kubernetes.&lt;/p&gt;
-</description>
-        <pubDate>Tue, 07 Mar 2023 10:03:59 +0000</pubDate>
-        <link>http://localhost:4000/struggles-with-docker</link>
-        <guid isPermaLink="true">http://localhost:4000/struggles-with-docker</guid>
-        
-        <category>docker,</category>
-        
-        <category>kubernetes,</category>
-        
-        <category>devops</category>
         
         
       </item>

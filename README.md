@@ -69,3 +69,9 @@ The above command will create a post.
 To convert the post to markdown do the following
 
 ` jupyter nbconvert --to markdown notebook_to_convert.ipynb --output source/_posts/post-path.md --output_dir=. `
+
+
+
+tdodo:
+
+- [] Integrate this tool for comments: https://giscus.app/

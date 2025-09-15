@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+  
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="canonical" href="http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search">
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CJV32Y553Z"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-CJV32Y553Z');
+</script>
+
+
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search! | Espoir Murhabazi ideas’ home</title>
+<meta name="generator" content="Jekyll v4.2.2" />
+<meta property="og:title" content="Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!" />
+<meta name="author" content="Murhabazi Buzina Espoir" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="This guide reveals how to use a CROSS JOIN LATERAL query to send multiple embedding vectors at once. Batch Search with PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications." />
+<meta property="og:description" content="This guide reveals how to use a CROSS JOIN LATERAL query to send multiple embedding vectors at once. Batch Search with PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications." />
+<link rel="canonical" href="http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search" />
+<meta property="og:url" content="http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search" />
+<meta property="og:site_name" content="Espoir Murhabazi ideas’ home" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-09-15T00:00:00+01:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Murhabazi Buzina Espoir"},"dateModified":"2025-09-15T00:00:00+01:00","datePublished":"2025-09-15T00:00:00+01:00","description":"This guide reveals how to use a CROSS JOIN LATERAL query to send multiple embedding vectors at once. Batch Search with PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications.","headline":"Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search"},"url":"http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <div class="container">
+    <input type="checkbox" id="toggleNavbar">
+    <h1 class="logo"><a href="/">esp<span>.py</span></a></h1>
+    <label for="toggleNavbar" role="button" class="toggle-navbar-button">
+      <i class="icon icon-menu"></i>
+      <i class="icon icon-cross"></i>
+    </label>
+    <nav class="navbar">
+      <ul>
+        <li><a href="/" title="Home">127.0.0.1</a></li>
+        
+          <li><a href="/about" title="whoami();">whoami();</a></li>
+        
+          <li><a href="/blog" title="read();">read();</a></li>
+        
+          <li><a href="/schedule" title="schedule();">schedule();</a></li>
+        
+          <li><a href="/drafts" title="drafts();">drafts();</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</header>
+
+
+<main class="main-container">
+  <div class="container">
+    <article role="article" class="post">
+
+  <div class="card">
+    <header class="post-header">
+      <h1 class="post-title">Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!</h1>
+      <em class="post-meta">
+        <time>Sep 15, 2025</time>
+      </em>
+    </header>
+
+    <div class="post-content">
+      
+      <p>Last week I was working on a project, and I was looking for a way to query Postgres to do vector search in  a batch way to send multiple embedding vectors at once to the database and retrieve the data without the need for a for-loop.</p>
+
+<p>I started googling online and found an old answer on StackOverflow using a query with <code class="language-bash highlighter-rouge">UNION</code>s. When I asked Deepseek how to improve the query, it recommended I use a <code class="language-bash highlighter-rouge">CROSS JOIN LATERAL</code>, which seemed to be faster than a normal union.</p>
+
+<p>Then I started digging a little bit deeper to understand what cross lateral joins are. Unfortunately, I couldn’t find any blog online that was explaining them in the context of a vector database, which is why I decided to put this guide together.</p>
+
+<h2 id="the-problem">The problem</h2>
+<p>Let’s say you have a list of questions and you need to perform an embedding search for all of them at once.
+This can happen when you need to evaluate how an embedding model performs on a set of queries. For each query, you want to retrieve the top 10 relevant chunks.
+In this post, we will work with a document table of this form for simplicity:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>document
+<span class="nt">--</span>
+doc_id: int
+embedding: vector<span class="o">(</span>1024<span class="o">)</span>
+content: Text
+</code></pre></div></div>
+
+<h3 id="recap-on-similarity-search">Recap on Similarity Search</h3>
+
+<p>You have a query text that has been embedded into a vector using an embedding model. You want to query your vector database to retrieve similar text to your query using the embedding and cosine similarity as a distance measure.</p>
+
+<p>Here is how you will perform the query using Postgres with the pgvector extension installed. You would perform something along these lines:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SELECT <span class="o">(</span>1 - <span class="o">(</span><span class="s2">"embedding"</span> &lt;<span class="o">=&gt;</span> %<span class="o">(</span>query_embedding<span class="o">)</span>s::vector<span class="o">))</span> as similarity, <span class="s2">"content"</span>, <span class="s2">"url"</span> FROM <span class="s2">"documents"</span> ORDER BY similarity desc LIMIT 5
+</code></pre></div></div>
+<p>If you have been working with RAG, that query is familiar to you.</p>
+
+<h2 id="different-approaches-to-solve-the-problem">Different Approaches to Solve the Problem:</h2>
+
+<h3 id="similarity-search-with-multiple-queries">Similarity search with multiple queries</h3>
+
+<p>Assuming now that you have 100 or 1000 queries that you want to send to the database and for each query you want to retrieve the corresponding documents.</p>
+
+<p>A naive Python code would look like this:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>query <span class="o">=</span> <span class="s2">"""SELECT (1 - ("</span>embedding<span class="s2">" &lt;=&gt; %({query_embedding})s::vector)) as similarity, "</span>content<span class="s2">", "</span>url<span class="s2">" FROM "</span>documents<span class="s2">" ORDER BY similarity desc LIMIT 5"""</span>
+
+<span class="k">for </span>question_embedding <span class="k">in </span>embeddings:
+    db_client.execute<span class="o">(</span>query, <span class="nv">embedding</span><span class="o">=</span>question_embedding<span class="o">)</span>
+</code></pre></div></div>
+
+<p>With this approach, you can see for each question you will be performing a round trip to the database and retrieve the results. If your database is hosted in a remote server that round trip can be costly for the performance of your application.</p>
+
+<p>That can be inefficient when you are dealing with hundreds or thousands of vectors. This is why I started thinking that there could be a better way to do this.</p>
+
+<h3 id="first-improvement-the-union-all-approach">First Improvement: The UNION ALL Approach</h3>
+
+<p>One way that came to my mind was to use the union query. With the union query, our query will look like this.</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="k">SELECT</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="nv">"embedding"</span> <span class="o">&lt;=&gt;</span> <span class="o">%</span><span class="p">({</span><span class="n">query_embedding_1</span><span class="p">})</span><span class="n">s</span><span class="p">::</span><span class="n">vector</span><span class="p">))</span> <span class="k">as</span> <span class="n">similarity</span><span class="p">,</span> <span class="nv">"content"</span><span class="p">,</span> <span class="nv">"url"</span> <span class="k">FROM</span> <span class="nv">"documents"</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">similarity</span> <span class="k">desc</span> <span class="k">LIMIT</span> <span class="mi">5</span><span class="p">)</span>
+<span class="k">UNION</span> <span class="k">ALL</span>
+<span class="p">(</span><span class="k">SELECT</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="nv">"embedding"</span> <span class="o">&lt;=&gt;</span> <span class="o">%</span><span class="p">({</span><span class="n">query_embedding_2</span><span class="p">})</span><span class="n">s</span><span class="p">::</span><span class="n">vector</span><span class="p">))</span> <span class="k">as</span> <span class="n">similarity</span><span class="p">,</span> <span class="nv">"content"</span><span class="p">,</span> <span class="nv">"url"</span> <span class="k">FROM</span> <span class="nv">"documents"</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">similarity</span> <span class="k">desc</span> <span class="k">LIMIT</span> <span class="mi">5</span><span class="p">)</span>
+<span class="p">.</span>
+<span class="p">.</span>
+<span class="p">.</span>
+<span class="p">...</span>
+<span class="k">UNION</span> <span class="k">ALL</span>
+<span class="p">(</span><span class="k">SELECT</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="nv">"embedding"</span> <span class="o">&lt;=&gt;</span> <span class="o">%</span><span class="p">({</span><span class="n">query_embedding_n</span><span class="p">})</span><span class="n">s</span><span class="p">::</span><span class="n">vector</span><span class="p">))</span> <span class="k">as</span> <span class="n">similarity</span><span class="p">,</span> <span class="nv">"content"</span><span class="p">,</span> <span class="nv">"url"</span> <span class="k">FROM</span> <span class="nv">"documents"</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">similarity</span> <span class="k">desc</span> <span class="k">LIMIT</span> <span class="mi">5</span><span class="p">)</span>
+</code></pre></div></div>
+<p>A Python code to generate that query would be something like this:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">base_query</span> <span class="o">=</span> <span class="s">"""SELECT (1 - ("embedding" &lt;=&gt; %(query_embedding_{index})s::vector)) as similarity, "content", "url" FROM "documents" ORDER BY similarity desc LIMIT 5"""</span>
+<span class="n">all_queries</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">embeddings</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+    <span class="n">formatted_query</span> <span class="o">=</span> <span class="n">base_query</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">all_queries</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">formatted_query</span><span class="p">)</span>
+
+<span class="n">final_query</span> <span class="o">=</span> <span class="s">" UNION ALL "</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">all_queries</span><span class="p">)</span>
+
+<span class="c1"># then you execute using
+</span><span class="n">db</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span><span class="n">final_query</span><span class="p">,</span> <span class="n">embeddings</span><span class="p">.</span><span class="n">tolist</span><span class="p">())</span>
+</code></pre></div></div>
+
+<p>This will give better performance than the previous one, but there is still room for improvement. And that is when the cross lateral join comes in.</p>
+<h3 id="the-superior-solution-cross-join-lateral">The Superior Solution: Cross Join Lateral</h3>
+
+<h4 id="cross-lateral-join"><strong>Cross lateral join</strong></h4>
+<p>Before diving deep into the SQL aspect of cross lateral join, let’s recap a concept from high school algebra.</p>
+
+<h4 id="cartesian-product"><strong>Cartesian Product</strong></h4>
+<p>The Cartesian product of two sets \(A\) and \(B\), written \(A \times B\), is the set of all ordered pairs in which the first element belongs to \(A\) and the second belongs to \(B\):
+\(A \times B = \{(a, b) \mid a \in A \text{ and } b \in B\}\)
+Let’s assume we have \(A = \{1, 2, 3\}$ and $B = \{A, B, C\}\), the Cartesian product of \(A\) and \(B\) will be the following: \(A \times B = \{(1,A), (1, B), (1,C), (2,A), (2, B), (2,C), (3,A), (3, B), (3,C)\}\).</p>
+
+<p>We can also note that the cardinality of \(A \times B =  |A| \times |B|\). 
+In our example, we will have the cardinality equal to nine.</p>
+
+<h4 id="from-cartesian-product-to-cross-join"><strong>From Cartesian Product to Cross Join</strong></h4>
+<p>With the Cartesian product in mind, let’s define the cross join:</p>
+<blockquote>
+  <p>The CROSS JOIN is used to generate a paired combination of each row of the first table with each row of the second table.</p>
+</blockquote>
+
+<p>Here is an example of two tables and the resulting table from a cross join:</p>
+
+<figure>
+  <p><img src="/assets/posts/2025-09-15-supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search/cross-join.png" /></p>
+  <figcaption> Cross Join in SQL</figcaption>
+</figure>
+
+<p>It was taken from this <a href="https://www.sqlshack.com/sql-cross-join-with-examples/">site</a>.</p>
+
+<p>Here is the syntax of the cross join. Given two tables <code class="language-bash highlighter-rouge">Meals</code> and <code class="language-bash highlighter-rouge">Drinks</code>:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SELECT Meals.name, Drinks.Name FROM Meals
+CROSS JOIN Drinks
+</code></pre></div></div>
+
+<h4 id="on-to-cross-lateral-join">On To Cross Lateral Join</h4>
+<p>What if we found a way to do better? As we have a list of vectors, how can we run the select against each vector in the list of vectors? This is where cross lateral join comes in handy.</p>
+
+<p>In the Postgres documentation, here is what is said about that query:</p>
+<blockquote>
+  <p>LATERAL:</p>
+</blockquote>
+
+<blockquote>
+  <p>The LATERAL key word can precede a sub-SELECT FROM item. This allows the sub-SELECT to refer to columns of FROM items that appear before it in the FROM list. (Without LATERAL, each sub-SELECT is evaluated independently and so cannot cross-reference any other FROM item.)</p>
+</blockquote>
+
+<p>That is a little bit convoluted and hard to explain.</p>
+
+<p>Let’s see how it works.</p>
+
+<h5 id="the-query"><em>The Query:</em></h5>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span>
+  <span class="n">results</span><span class="p">.</span><span class="o">*</span><span class="p">,</span>
+  <span class="n">vector_table</span><span class="p">.</span><span class="n">idx</span> <span class="k">as</span> <span class="n">query_index</span>
+<span class="k">FROM</span>
+  <span class="k">unnest</span><span class="p">(</span>
+    <span class="n">ARRAY</span><span class="p">[</span> <span class="o">%</span><span class="p">(</span><span class="n">vector_0</span><span class="p">)</span><span class="n">s</span><span class="p">::</span><span class="n">vector</span><span class="p">,</span> <span class="o">%</span><span class="p">(</span><span class="n">vector_1</span><span class="p">)</span><span class="n">s</span><span class="p">::</span><span class="n">vector</span><span class="p">,</span> <span class="o">%</span><span class="p">(</span><span class="n">vector_2</span><span class="p">)</span><span class="n">s</span><span class="p">::</span><span class="n">vector</span> <span class="p">]</span>
+  <span class="p">)</span> <span class="k">WITH</span> <span class="k">ORDINALITY</span> <span class="k">AS</span> <span class="n">vector_table</span><span class="p">(</span><span class="n">query_vector</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+<span class="k">CROSS</span> <span class="k">JOIN</span> <span class="k">LATERAL</span> <span class="p">(</span>
+    <span class="k">SELECT</span>
+      <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="nv">"embedding"</span> <span class="o">&lt;=&gt;</span> <span class="n">vector_table</span><span class="p">.</span><span class="n">query_vector</span><span class="p">))</span> <span class="k">as</span> <span class="n">similarity</span><span class="p">,</span>
+      <span class="nv">"content"</span><span class="p">,</span>
+      <span class="nv">"url"</span>
+    <span class="k">FROM</span>
+      <span class="nv">"documents"</span>
+    <span class="k">ORDER</span> <span class="k">BY</span>
+      <span class="n">similarity</span> <span class="k">desc</span>
+    <span class="k">LIMIT</span> <span class="mi">5</span>
+  <span class="p">)</span> <span class="k">AS</span> <span class="n">results</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">vector_table</span><span class="p">.</span><span class="n">idx</span><span class="p">,</span> <span class="n">results</span><span class="p">.</span><span class="n">similarity</span> <span class="k">DESC</span>
+</code></pre></div></div>
+
+<h5 id="deconstructing-the-magic-query"><em>Deconstructing the Magic Query</em></h5>
+
+<p>Let’s now dissect the query and see how it works. It has two parts.</p>
+
+<p>Let’s look at the <strong>first one</strong>. The left part:</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">unnest</span><span class="p">(</span>
+    <span class="n">ARRAY</span><span class="p">[</span> <span class="o">%</span><span class="p">(</span><span class="n">vector_0</span><span class="p">)</span><span class="n">s</span><span class="p">::</span><span class="n">vector</span><span class="p">,</span> <span class="o">%</span><span class="p">(</span><span class="n">vector_1</span><span class="p">)</span><span class="n">s</span><span class="p">::</span><span class="n">vector</span><span class="p">,</span> <span class="o">%</span><span class="p">(</span><span class="n">vector_2</span><span class="p">)</span><span class="n">s</span><span class="p">::</span><span class="n">vector</span> <span class="p">]</span>
+  <span class="p">)</span> <span class="k">WITH</span> <span class="k">ORDINALITY</span> <span class="k">AS</span> <span class="n">vector_table</span><span class="p">(</span><span class="n">query_vector</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+</code></pre></div></div>
+<p>This part is the temporary table creation where a table is created and has each embedding vector as a row. So our table will have:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1, vector_0
+2, vector_1
+3, vector_2
+...
+n, vector_n
+</code></pre></div></div>
+
+<p>The <code class="language-bash highlighter-rouge">ordinality</code> keyword adds an index starting from 1 to each row in the returned value of the first part.</p>
+
+<p><strong>Then the second</strong> part is a cross join. The table on the left is cross-joined with the table on the right. The LATERAL keyword helps to use the left table in the cross join clause. <em>Without it, each sub-SELECT is evaluated independently and so cannot cross-reference any other FROM item.</em></p>
+
+<p>That is why in the second item we were able to reference the results of the first select as <code class="language-bash highlighter-rouge">vector_table.query_vector</code>.</p>
+
+<p>The subquery is:</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">SELECT</span>
+      <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="nv">"embedding"</span> <span class="o">&lt;=&gt;</span> <span class="n">vector_table</span><span class="p">.</span><span class="n">query_vector</span><span class="p">))</span> <span class="k">as</span> <span class="n">similarity</span><span class="p">,</span>
+      <span class="nv">"content"</span><span class="p">,</span>
+      <span class="nv">"url"</span>
+    <span class="k">FROM</span>
+      <span class="nv">"documents"</span>
+    <span class="k">ORDER</span> <span class="k">BY</span>
+      <span class="n">similarity</span> <span class="k">desc</span>
+    <span class="k">LIMIT</span> <span class="mi">5</span>
+</code></pre></div></div>
+<p>The documentation explains the execution perfectly:</p>
+<blockquote>
+  <p>When a FROM item contains LATERAL cross-references, evaluation proceeds as follows: for each row of the FROM item providing the cross-referenced column(s)… the LATERAL item is evaluated using that row or row set’s values of the columns. The resulting row(s) are joined as usual with the rows they were computed from. This is repeated for each row or set of rows from the column source table(s).</p>
+</blockquote>
+
+<h3 id="benchmarks">Benchmarks</h3>
+<p>Let us benchmark the 3 approaches and find out which one is the fastest.</p>
+
+<p>We are running the query in a small setting where we have around 10k documents in our database each document has string content and embedding vector of size <code class="language-bash highlighter-rouge">1024</code>. The database table is indexed on the embedding column using a <code class="language-bash highlighter-rouge">hnsw</code> index. The database and the code where both running on my local machine a Mac M1 with 16GB of CPU.</p>
+
+<p>Later I will benchmark the three queries in a setting where the code run on a different machine than the database and I will update this section with the performance of the code in those settings.</p>
+
+<p>After benchmarking and performing an analyzis on the answer with my table I found a small gain of performance on a small table.</p>
+
+<p>In the upcoming version of this blog I replicate the setting in a table of millions documents and vector and report the performance.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this post we explained how cross lateral join works with PGVectors. In the next post I will run a benchmark of the cross lateral and compare it with. a normal for loop for batch vector search.</p>
+
+
+    </div>
+
+    <br>
+Comments
+<br>
+<!--Every article has a id, but special pages don't unless you set manually.
+This prevents Cusdis from appear everywhere-->
+<div id="cusdis_thread"
+  data-host="https://cusdis.com"
+  data-app-id="49460c1b-dcbb-4633-8c78-63d7b5100f73"
+  data-page-id="/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search"
+  data-page-url="http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search"
+  data-page-title="Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!"
+  data-theme="dark"
+></div>
+<script defer src="https://cusdis.com/js/cusdis.es.js"></script>
+
+  </div>
+
+</article>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <ul class="social">
+  <li><a href="https://github.com/espoirMur" target="_blank"><i class="icon icon-github"></i></a></li>
+  <li><a href="https://twitter.com/esp_py" target="_blank"><i class="icon icon-twitter"></i></a></li>
+  <li><a href="https://www.linkedin.com/in/espoirMur/" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+  <li><a href="https://stackoverflow.com/users/4683950/espoir-murhabazi" target="_blank"><i class="fa-brands fa-stack-overflow"></i></a></li>
+</ul>
+
+    <p class="txt-medium-gray">
+      <small>&copy;2025 All rights reserved. Made with <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> and ♥</small>
+    </p>
+  </div>
+</footer>
+
+
+</body>
+</html>

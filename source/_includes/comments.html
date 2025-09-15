@@ -1,22 +1,18 @@
 {% if page.comments %}
-<hr>
-
-<aside id="comments" class="disqus">
-  <h3><i class="icon icon-comments-o"></i> Comments</h3>
-  <div id="disqus_thread"></div>
-  <script>
-    var disqus_config = function() {
-      this.page.url = '{{ site.url }}{{ page.url }}';
-      this.page.identifier = '{{ page.id }}';
-    };
-    (function() {
-      var d = document,
-      s = d.createElement('script');
-      s.src = 'https://{{ site.disqus_site_shortname }}.disqus.com/embed.js';
-      s.setAttribute('data-timestamp', +new Date());
-      (d.head || d.body).appendChild(s);
-    })();
-  </script>
-  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
-</aside>
+{%- if page.id -%}
+<br>
+Comments
+<br>
+<!--Every article has a id, but special pages don't unless you set manually.
+This prevents Cusdis from appear everywhere-->
+<div id="cusdis_thread"
+  data-host="https://cusdis.com"
+  data-app-id="49460c1b-dcbb-4633-8c78-63d7b5100f73"
+  data-page-id="{{ page.id }}"
+  data-page-url="{{ site.url }}{{ page.baseurl }}{{ page.url }}"
+  data-page-title="{{ page.title }}"
+  data-theme="dark"
+></div>
+<script defer src="https://cusdis.com/js/cusdis.es.js"></script>
+{%- endif -%}
 {% endif %}
