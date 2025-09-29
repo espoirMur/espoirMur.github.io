@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!"
-permalink: supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search
+permalink: supercharge-postgres-vector-search-cross-join-lateral-for-batch-vector-search
 date: 2025-09-15
 comments: true
 description: "This guide reveals how to use a CROSS JOIN LATERAL query to send multiple embedding vectors at once. Batch Search with PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications."

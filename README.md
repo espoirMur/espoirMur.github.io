@@ -75,3 +75,4 @@ To convert the post to markdown do the following
 tdodo:
 
 - [] Integrate this tool for comments: https://giscus.app/
+- [] add category: https://blog.webjeda.com/jekyll-categories/
