@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!"
+title: "Supercharge Postgres Vector Search: Cross Join Lateral For Batch Vector Search!"
 permalink: supercharge-postgres-vector-search-cross-join-lateral-for-batch-vector-search
 date: 2025-09-15
 comments: true
