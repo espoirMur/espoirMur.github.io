@@ -76,3 +76,4 @@ tdodo:
 
 - [] Integrate this tool for comments: https://giscus.app/
 - [] add category: https://blog.webjeda.com/jekyll-categories/
+- [] Add light mode: https://opensource.com/article/22/4/light-dark-mode-jekyll
