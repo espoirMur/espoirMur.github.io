@@ -12,7 +12,7 @@
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="/assets/css/main.css">
-<link rel="canonical" href="http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search">
+<link rel="canonical" href="http://localhost:4000/batch-vector-search-pgvector-postgresql-cross-lateral-joins">
 
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-CJV32Y553Z"></script>
@@ -26,22 +26,22 @@
 
 
   <!-- Begin Jekyll SEO tag v2.8.0 -->
-<title>Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search! | Espoir Murhabazi ideas’ home</title>
+<title>Batch Vector Search with PgVector and PostgresSQL Using Cross Lateral Joins | Espoir Murhabazi ideas’ home</title>
 <meta name="generator" content="Jekyll v4.2.2" />
-<meta property="og:title" content="Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!" />
+<meta property="og:title" content="Batch Vector Search with PgVector and PostgresSQL Using Cross Lateral Joins" />
 <meta name="author" content="Murhabazi Buzina Espoir" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="This guide reveals how to use a CROSS JOIN LATERAL query to send multiple embedding vectors at once. Batch Search with PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications." />
-<meta property="og:description" content="This guide reveals how to use a CROSS JOIN LATERAL query to send multiple embedding vectors at once. Batch Search with PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications." />
-<link rel="canonical" href="http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search" />
-<meta property="og:url" content="http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search" />
+<meta name="description" content="This guide reveals how to use a CROSS Lateral join for batch vector search with PSQL PostgreSQL and PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications." />
+<meta property="og:description" content="This guide reveals how to use a CROSS Lateral join for batch vector search with PSQL PostgreSQL and PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications." />
+<link rel="canonical" href="http://localhost:4000/batch-vector-search-pgvector-postgresql-cross-lateral-joins" />
+<meta property="og:url" content="http://localhost:4000/batch-vector-search-pgvector-postgresql-cross-lateral-joins" />
 <meta property="og:site_name" content="Espoir Murhabazi ideas’ home" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2025-09-15T00:00:00+01:00" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!" />
+<meta property="twitter:title" content="Batch Vector Search with PgVector and PostgresSQL Using Cross Lateral Joins" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Murhabazi Buzina Espoir"},"dateModified":"2025-09-15T00:00:00+01:00","datePublished":"2025-09-15T00:00:00+01:00","description":"This guide reveals how to use a CROSS JOIN LATERAL query to send multiple embedding vectors at once. Batch Search with PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications.","headline":"Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search"},"url":"http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Murhabazi Buzina Espoir"},"dateModified":"2025-09-15T00:00:00+01:00","datePublished":"2025-09-15T00:00:00+01:00","description":"This guide reveals how to use a CROSS Lateral join for batch vector search with PSQL PostgreSQL and PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications.","headline":"Batch Vector Search with PgVector and PostgresSQL Using Cross Lateral Joins","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/batch-vector-search-pgvector-postgresql-cross-lateral-joins"},"url":"http://localhost:4000/batch-vector-search-pgvector-postgresql-cross-lateral-joins"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -78,7 +78,7 @@
 
   <div class="card">
     <header class="post-header">
-      <h1 class="post-title">Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!</h1>
+      <h1 class="post-title">Batch Vector Search with PgVector and PostgresSQL Using Cross Lateral Joins</h1>
       <em class="post-meta">
         <time>Sep 15, 2025</time>
       </em>
@@ -181,7 +181,7 @@ In our example, we will have the cardinality equal to nine.</p>
 <p>Here is an example of two tables and the resulting table from a cross join:</p>
 
 <figure>
-  <p><img src="/assets/posts/2025-09-15-supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search/cross-join.png" /></p>
+  <p><img src="/assets/posts/2025-09-15-batch-vector-search-pgvector-postgresql-cross-lateral-joins/cross-join.png" /></p>
   <figcaption> Cross Join in SQL</figcaption>
 </figure>
 
@@ -298,8 +298,8 @@ This prevents Cusdis from appear everywhere-->
   data-host="https://cusdis.com"
   data-app-id="49460c1b-dcbb-4633-8c78-63d7b5100f73"
   data-page-id="/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search"
-  data-page-url="http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search"
-  data-page-title="Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!"
+  data-page-url="http://localhost:4000/batch-vector-search-pgvector-postgresql-cross-lateral-joins"
+  data-page-title="Batch Vector Search with PgVector and PostgresSQL Using Cross Lateral Joins"
   data-theme="dark"
 ></div>
 <script defer src="https://cusdis.com/js/cusdis.es.js"></script>

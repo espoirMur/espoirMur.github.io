@@ -5,12 +5,12 @@
     <description>Murhabazi Buzina Espoir Home on the internet</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 15 Sep 2025 21:56:08 +0100</pubDate>
-    <lastBuildDate>Mon, 15 Sep 2025 21:56:08 +0100</lastBuildDate>
+    <pubDate>Mon, 06 Oct 2025 22:08:51 +0100</pubDate>
+    <lastBuildDate>Mon, 06 Oct 2025 22:08:51 +0100</lastBuildDate>
     <generator>Jekyll v4.2.2</generator>
     
       <item>
-        <title>Supercharge Postgres Vector Search: Cross Join Lateral For Bacth Vector Search!</title>
+        <title>Batch Vector Search with PgVector and PostgresSQL Using Cross Lateral Joins</title>
         <description>&lt;p&gt;Last week I was working on a project, and I was looking for a way to query Postgres to do vector search in  a batch way to send multiple embedding vectors at once to the database and retrieve the data without the need for a for-loop.&lt;/p&gt;
 
 &lt;p&gt;I started googling online and found an old answer on StackOverflow using a query with &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;UNION&lt;/code&gt;s. When I asked Deepseek how to improve the query, it recommended I use a &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;CROSS JOIN LATERAL&lt;/code&gt;, which seemed to be faster than a normal union.&lt;/p&gt;
@@ -106,7 +106,7 @@ In our example, we will have the cardinality equal to nine.&lt;/p&gt;
 &lt;p&gt;Here is an example of two tables and the resulting table from a cross join:&lt;/p&gt;
 
 &lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-09-15-supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search/cross-join.png&quot; /&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-09-15-batch-vector-search-pgvector-postgresql-cross-lateral-joins/cross-join.png&quot; /&gt;&lt;/p&gt;
   &lt;figcaption&gt; Cross Join in SQL&lt;/figcaption&gt;
 &lt;/figure&gt;
 
@@ -213,12 +213,18 @@ n, vector_n
 
 </description>
         <pubDate>Mon, 15 Sep 2025 00:00:00 +0100</pubDate>
-        <link>http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search</link>
-        <guid isPermaLink="true">http://localhost:4000/supercharge-postgres-vector-search-cross-join-lateral-for-bacth-vector-search</guid>
+        <link>http://localhost:4000/batch-vector-search-pgvector-postgresql-cross-lateral-joins</link>
+        <guid isPermaLink="true">http://localhost:4000/batch-vector-search-pgvector-postgresql-cross-lateral-joins</guid>
         
         <category>postgres,</category>
         
-        <category>pgvector,vectorsearch,sql,rag</category>
+        <category>pgvector,</category>
+        
+        <category>vectorsearch,</category>
+        
+        <category>sql,</category>
+        
+        <category>rag</category>
         
         
       </item>

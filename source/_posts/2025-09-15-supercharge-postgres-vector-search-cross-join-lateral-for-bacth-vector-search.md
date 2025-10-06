@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Supercharge Postgres Vector Search: Cross Join Lateral For Batch Vector Search!"
-permalink: supercharge-postgres-vector-search-cross-join-lateral-for-batch-vector-search
+title: "Batch Vector Search with PgVector and PostgresSQL Using Cross Lateral Joins"
+permalink: batch-vector-search-pgvector-postgresql-cross-lateral-joins
 date: 2025-09-15
 comments: true
 description: "This guide reveals how to use a CROSS Lateral join for  batch vector search with PSQL PostgreSQL and PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications."
