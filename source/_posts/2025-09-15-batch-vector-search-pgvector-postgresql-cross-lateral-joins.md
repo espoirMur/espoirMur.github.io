@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Batch Vector Search with PgVector and PostgresSQL Using Cross Lateral Joins"
+title: "Batch Vector Search with PgVector and PostgreSQL Using Cross Lateral Joins"
 permalink: batch-vector-search-pgvector-postgresql-cross-lateral-joins
 date: 2025-09-15
 comments: true
