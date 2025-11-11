@@ -174,7 +174,7 @@ In the scientific literature the metric used is called SummaC.</p>
 <p>It split the original document in block of text(sentences, or paragraph), the generated summary by the sentences. Then use a NLI model such as BERT to compute the entailment score for each sentence of generated summary vs each sentence in the original document. Those scores are saved in a matrix which is called entailment matrix.
 For SummaCZS, they reduce the entailment matrix into a one-dimensional vector by taking the maximum value in each column. Intuitively, this results in retaining the score for the document sentence that provides the strongest support for each summary sentence. Then, to get a single score for the entire summary, they simply compute the mean of the vector.
 There are other sophisticated approach of the entailment matrix using a convolutional layer.
-The bellow picture describes how the entailment matrix works.</p>
+The bellow picture describes how the entailment matrix works. Cite[8]</p>
 
 <figure>
   <p><img src="/assets/posts/2025-05-22-evaluation-metrics-for-summarization/sumac.png" /></p>
@@ -210,7 +210,10 @@ The bellow picture describes how the entailment matrix works.</p>
   <li>Fabbri A, et al. (2021). <a href="https://aclanthology.org/2021.tacl-1.24">SummEval: Re-evaluating Summarization Evaluation</a>.</li>
   <li>Yan, Ziyou. (2023). <a href="https://eugeneyan.com/writing/abstractive/">Evaluation &amp; Hallucination Detection for Abstractive Summaries</a>.</li>
   <li>He T, et al. (2008). ROUGE-C: A fully automated evaluation method for multi-document summarization. 2008 IEEE International Conference on Granular Computing, Hangzhou, China, pp. 269-274. doi: <a href="https://doi.org/10.1109/GRC.2008.4664680">10.1109/GRC.2008.4664680</a>.</li>
-  <li><a href="https://sbert.net/examples/sentence_transformer/training/nli/README.html">Natural Language Inference with Sentence Transformer</a>.</li>
+  <li>
+    <p><a href="https://sbert.net/examples/sentence_transformer/training/nli/README.html">Natural Language Inference with Sentence Transformer</a>.</p>
+  </li>
+  <li><a href="https://aclanthology.org/2022.tacl-1.10/">SummaC: Re-Visiting NLI-based Models for Inconsistency Detection in Summarization</a> (Laban et al., TACL 2022)</li>
 </ol>
 
 

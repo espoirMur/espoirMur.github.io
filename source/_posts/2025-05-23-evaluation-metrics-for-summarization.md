@@ -91,7 +91,7 @@ In the scientific literature the metric used is called SummaC.
 It split the original document in block of text(sentences, or paragraph), the generated summary by the sentences. Then use a NLI model such as BERT to compute the entailment score for each sentence of generated summary vs each sentence in the original document. Those scores are saved in a matrix which is called entailment matrix.
 For SummaCZS, they reduce the entailment matrix into a one-dimensional vector by taking the maximum value in each column. Intuitively, this results in retaining the score for the document sentence that provides the strongest support for each summary sentence. Then, to get a single score for the entire summary, they simply compute the mean of the vector.
 There are other sophisticated approach of the entailment matrix using a convolutional layer.
-The bellow picture describes how the entailment matrix works.
+The bellow picture describes how the entailment matrix works. Cite[8]
 
 {% include image.html name="sumac.png" caption="SummaC summarization" %}
 
@@ -124,6 +124,7 @@ Sources:
 6. He T, et al. (2008). ROUGE-C: A fully automated evaluation method for multi-document summarization. 2008 IEEE International Conference on Granular Computing, Hangzhou, China, pp. 269-274. doi: [10.1109/GRC.2008.4664680](https://doi.org/10.1109/GRC.2008.4664680).
 7. [Natural Language Inference with Sentence Transformer](https://sbert.net/examples/sentence_transformer/training/nli/README.html).
 
+8. [SummaC: Re-Visiting NLI-based Models for Inconsistency Detection in Summarization](https://aclanthology.org/2022.tacl-1.10/) (Laban et al., TACL 2022)
 
 
 

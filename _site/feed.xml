@@ -5,12 +5,265 @@
     <description>Murhabazi Buzina Espoir Home on the internet</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 06 Oct 2025 22:08:51 +0100</pubDate>
-    <lastBuildDate>Mon, 06 Oct 2025 22:08:51 +0100</lastBuildDate>
+    <pubDate>Tue, 11 Nov 2025 17:51:51 +0000</pubDate>
+    <lastBuildDate>Tue, 11 Nov 2025 17:51:51 +0000</lastBuildDate>
     <generator>Jekyll v4.2.2</generator>
     
       <item>
-        <title>Batch Vector Search with PgVector and PostgresSQL Using Cross Lateral Joins</title>
+        <title>Natural Language Inference for Hallucination Detection in RAG Responses</title>
+        <description>&lt;p&gt;If you search online for ways to detect RAG response faithfulness, most posts recommend using an ‘LLM-as-a-judge’ approach. However anyone who has some statistical knowledge will have a doubt about using LLM as a judge to detect faithfulness. How can a model prone to hallucination  detect hallucination? 🤔”&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/obama.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;LLM as a Judge&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;In this post, we’ll explore what “hallucinations” mean in the context of Large Language Models (LLMs). We’ll look at two kinds of LLMs and see which ones tend to hallucinate more often. Then, we’ll shift to a different approach that uses models less likely to hallucinate, introduce the idea of Natural Language Inference (NLI), and see how NLI can help check the faithfulness of RAG responses. Finally, we’ll look at how these ideas work in real-world production systems, more precisely in the example of the AIM usecase.&lt;/p&gt;
+
+&lt;h2 id=&quot;autoencoding-model-vs-autoregressive-models&quot;&gt;AutoEncoding Model vs AutoRegressive Models.&lt;/h2&gt;
+
+&lt;p&gt;Large Language models can be divided into two categories based on how they are trained. We have auto regressive and auto encoding models.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Auto regressive&lt;/em&gt; models are trained with the next token prediction objective. Given the previous token in a sentence predict the next token. Typical examples of those models are the GPT model, and all model trained with the Llama architecture.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Auto encoding&lt;/em&gt; models are trained with fill the mask objective, when they are given an input sentence with a mask and they are trained to predict the masked word. While trained with that objective they learn text features and those features can be used later in sentence classification, or token classification or just to learn the text embeddings. They cannot generate text, which is why they are less prone to hallucinations.&lt;/p&gt;
+
+&lt;p&gt;Note that the only difference between autoregressive models and autoencoding models is in the way the model is pretrained. Therefore, the same architecture can be used for both autoregressive and autoencoding models.&lt;/p&gt;
+
+&lt;p&gt;Auto regressive models can hallucinate because they’re trained to predict plausible continuations, not factual correctness. Auto encoding models, on the other ends, are optimized for reconstructive understanding rather than free-form generation — making &lt;em&gt;them more stable for discriminative tasks like NLI.&lt;/em&gt;”&lt;/p&gt;
+
+&lt;p&gt;source: &lt;a href=&quot;https://huggingface.co/transformers/v3.1.0/model_summary.html#autoregressive-models&quot;&gt;Huggingface blog&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;hallucinations&quot;&gt;Hallucinations&lt;/h2&gt;
+
+&lt;p&gt;Large Language models especially those from the GPT and Llama family are auto regressive by Nature, they are next token predictors and use probabilities to predict the next token given previous token, due to that nature they are prone to hallucinations (or false or misleading information presented as fact.)&lt;/p&gt;
+
+&lt;p&gt;This happens because the model’s objective is to generate the most probable continuation of text rather than to verify the factual accuracy of what it produces, meaning that when reliable context or evidence is missing, it may confidently generate information that sounds plausible but is actually incorrect.&lt;/p&gt;
+
+&lt;p&gt;In the RAG setting hallucination is when the LLM generated answers is not supported by the retrieve context.&lt;/p&gt;
+
+&lt;p&gt;With the definition of the hallucination let present an approach use by auto encoding model to avoid them.&lt;/p&gt;
+
+&lt;h2 id=&quot;natural-language-entailment-or-natural-language-inferencenli&quot;&gt;Natural Language Entailment or Natural Language Inference(NLI)&lt;/h2&gt;
+
+&lt;h3 id=&quot;definition-sources-1-2&quot;&gt;Definition: Sources &lt;a href=&quot;https://aclanthology.org/C08-1066.pdf&quot;&gt;1&lt;/a&gt;, &lt;a href=&quot;https://www.cs.upc.edu/~ageno/anlp/textualEntailment.pdf&quot;&gt;2&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;Textual Entailment or Natural Language Inference is an NLP task of deciding, given two text fragments, whether the meaning of one text can be inferred (entailed) from another text.&lt;/p&gt;
+
+&lt;p&gt;Mathematically, it can be formalized this way: &lt;em&gt;Given two fragments of texts, a hypothesis \(h\) and a text \(t\): A text \(t\) entails a hypothesis \(h\) if \(h\) is true in every circumstance in which \(t\) is true.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Example:&lt;/p&gt;
+
+&lt;p&gt;Text: Eyeing the huge market potential, currently led by Google, Yahoo took over search company Overture Services Inc last year.Hypothesis: Yahoo bought Overture.Entailment: True&lt;/p&gt;
+
+&lt;p&gt;Text: The National Institute for Psychobiology in Israel was established in May 1971 as the Israel Centre for Psychobiology by Prof. JoelHypothesis: Israel was established in May 1971.Entailment: False.&lt;/p&gt;
+
+&lt;h3 id=&quot;how-does-that-work-in-practice&quot;&gt;How does that work in practice?&lt;/h3&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/nli_approach.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Natural Language Inference&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h3 id=&quot;natural-language-entailment&quot;&gt;Natural Language Entailment&lt;/h3&gt;
+
+&lt;p&gt;Features model both similarity and mismatch:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;- Classifier determines relative weights of information sources
+- Train on development &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;and auxiliary t-h corpora
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In practice Natural Language entailment is done as a classification task. The text and the hypothesis are passed to a model which will learn their representation in a feature space, and then a classification layer is added at the end to predict whether there is entailment between those two texts.&lt;/p&gt;
+
+&lt;p&gt;In the early ages of NLP the feature was learned via N-grams or lexical features, but currently auto encoding models have proven themselves useful for those tasks. In many tasks for the moment we use cross encoder models trained on large NLI datasets.&lt;/p&gt;
+
+&lt;h3 id=&quot;cross-encoders&quot;&gt;Cross Encoders&lt;/h3&gt;
+
+&lt;p&gt;A cross encoder model is a auto encoding model from the BERT familly, that take as input a pair of two sentence and generates a vector output. Depending on how it was trained that output can represents a similarity score between the two sentence, or as for our use case it output the entailment probability between those two sentences.&lt;/p&gt;
+
+&lt;p&gt;So Given a hypothesis, and a text, a cross encoder is trained to predict if the text is entailed by the hypothesis. To achieve that the model predicts 3 different probabilities which are the probability of entailment, contradiction or neutrality between the text and the hypothesis.&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/cross-encoder.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Cross encoder for Entailment&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://milvus.io/ai-quick-reference/what-techniques-can-be-used-to-detect-hallucinations-in-a-raggenerated-answer-for-example-checking-if-all-factual-claims-have-support-in-the-retrieved-text&quot;&gt;Reference: Mlivus Post on Detecting Hallucinations.&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;nli-as-faithfulness-checks&quot;&gt;NLI as Faithfulness checks.&lt;/h3&gt;
+
+&lt;p&gt;The natural language inference approach is used widely in fact verification. Given a fact and a bunch of reference text, can we find one reference that confirms or declines the fact?&lt;/p&gt;
+
+&lt;p&gt;That same approach has been used in RAG evaluation, given an answer and the context, the task similar to the NLI one is to check if the context supports, or contradicts the answer. When the context contradicts an answer we can say that the answer has been hallucinated.&lt;/p&gt;
+
+&lt;p&gt;For RAG there are two approach to check the faithfulness of a generated answer against the chunk,&lt;/p&gt;
+
+&lt;p&gt;One approach is to split the answer in sentences and check each sentence if it is supported by the chunk. his approach is the one used in the SumaC Paper.&lt;/p&gt;
+
+&lt;p&gt;The second approach we use the answer and check if the answer without splitting it into chunk it is supported or not supported by the chunk.&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/SummaC.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Sentence Level Hallucination detection approach from SummaC&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Given the answer split into sentences and the chunks used to generate the answers.&lt;/p&gt;
+
+&lt;p&gt;Then a cross encoder model computes the entailment score for each sentence of answer vs each sentence in the chunk to generate a probability distribution of [entailment, contradiction, neutrality]&lt;/p&gt;
+
+&lt;p&gt;So if an answer has 4 sentences and you have 2 chunks, we end up with 4 x 2 pairs that are sent to the cross encoder.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt; &lt;/th&gt;
+      &lt;th&gt;Sentence 1&lt;/th&gt;
+      &lt;th&gt;Sentence 2&lt;/th&gt;
+      &lt;th&gt;Sentence 3&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Chunk 1&lt;/td&gt;
+      &lt;td&gt;[(Eij, Cij, Nij)]&lt;/td&gt;
+      &lt;td&gt;(Eij, Cij, Nij),&lt;/td&gt;
+      &lt;td&gt;(Eij, Cij, Nij)—&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Chunk 2&lt;/td&gt;
+      &lt;td&gt;[(Eij, Cij, Nij)]&lt;/td&gt;
+      &lt;td&gt;(Eij, Cij, Nij),&lt;/td&gt;
+      &lt;td&gt;(Eij, Cij, Nij)&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Those scores are saved in a matrix which is called entailment matrix.&lt;/p&gt;
+
+&lt;p&gt;To reduce the scores on answer level it depends on what we are trying to achieve.&lt;/p&gt;
+
+&lt;p&gt;If at least one combination chunk, sentence is contradictory the answer is marked as hallucinated.&lt;/p&gt;
+
+&lt;p&gt;Depending on the use case you can use different approaches to combine the probability distribution to have one score per answer.&lt;/p&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;As the encoder model is not auto regressive this approach will not be prone to hallucination but it can have flaws depending on how the model was trained. We cannot say it is also 100% accurate, but it has shown its efficiency in practice.&lt;/p&gt;
+
+&lt;p&gt;Another advantage is the cross encoder model is small and can be fine tuned on a dataset of your choice.&lt;/p&gt;
+
+&lt;h3 id=&quot;provenance-approach--ref&quot;&gt;Provenance Approach : &lt;a href=&quot;https://arxiv.org/html/2411.01022&quot;&gt;Ref&lt;/a&gt;&lt;/h3&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/provenance.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Provenance Approach for Hallucination detection&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;The provenance approach uses a NLI cross encoder but with a slight difference from the SummaC approach.&lt;/p&gt;
+
+&lt;p&gt;They use both the question and the answer to compute a factuality score.&lt;/p&gt;
+
+&lt;p&gt;They generate an input by combining the Answer and the question with the following claim:&lt;/p&gt;
+
+&lt;p&gt;“The Answer to question &lt;Query&gt; is &lt;Answer&gt;&quot;&lt;/Answer&gt;&lt;/Query&gt;&lt;/p&gt;
+
+&lt;p&gt;And then they combine that claim with each chunk used to generate the answer and put it as an input to a Transformer model &lt;a href=&quot;https://huggingface.co/vectara/hallucination_evaluation_model&quot;&gt;T5 Model&lt;/a&gt; that returns the factuality score.&lt;/p&gt;
+
+&lt;p&gt;Later the answers are combined using the same approach we used in the SummaC approach. If there is at least one chunk that contradicts the answer then the whole answer is marked as hallucinated.&lt;/p&gt;
+
+&lt;h3 id=&quot;enough-talk-the-code&quot;&gt;Enough Talk, the code!&lt;/h3&gt;
+
+&lt;p&gt;The context of this project is a QA system I am building on top of the &lt;a href=&quot;https://www.halifax-intermediaries.co.uk/site-map.html&quot;&gt;Halifax intermediaries website&lt;/a&gt;, the goal of the project is to build a tool that help broker to find answer to question they have about Halifax products. They are question varies from simple question to large and complicated questions.&lt;/p&gt;
+
+&lt;p&gt;We will use the data which consist of a question, the chunks used to generate the answer, and the generated answer.&lt;/p&gt;
+
+&lt;p&gt;Then we will consider two approach the first one is where we will split the generated answer into sentence and compute the NLI Score between each sentence and the chunk used to generate the answer.&lt;/p&gt;
+
+&lt;p&gt;In the second approach we will use the Answer as one block and compare the NLI score with each chunk used to generate it.&lt;/p&gt;
+
+&lt;p&gt;The model used: We will be using the cross encoder named &lt;a href=&quot;https://huggingface.co/tals/albert-xlarge-vitaminc-mnli&quot;&gt;tals/albert-xlarge-vitaminc-mnli&lt;/a&gt; from huggingface.&lt;/p&gt;
+
+&lt;p&gt;The model is a Bert model train on a dataset that contains more than 450,000 claim-evidence pairs from over 100,000 revisions to popular Wikipedia pages, and additional “synthetic” revisions.&lt;/p&gt;
+
+&lt;h3 id=&quot;experiments&quot;&gt;Experiments&lt;/h3&gt;
+
+&lt;h4 id=&quot;split-by-sentence&quot;&gt;Split by sentence.&lt;/h4&gt;
+
+&lt;p&gt;In the first iteration from 136 questions: We split the answer into sentences and we compare each sentence to the chunk and get the entailment score, which comes as a probability distribution over 3 variable: entailment, contradiction and neutrality.&lt;/p&gt;
+
+&lt;p&gt;Here is an example of the score produce after splitting the answer by sentence.&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/nli_scores.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;entailment scores&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Each row in the table bellow contains a chunk returned for the question: &lt;strong&gt;I have a client who has a buy to let mortgage which is rented out, will Halifax use the profits from this for resi affordability purposes?&lt;/strong&gt;, the column contain each sentence in the generated answer. The cell value is a array [x1, x2, x3] x1: is the probability of entailment, x2: is the probability of contradiction x3 . is the probability of neutrality.&lt;/p&gt;
+
+&lt;p&gt;In the second table we pick the maximum value for in each cell. If the maximum is x1 the color of the cell is green and that means entailment. If the maximum is x2, we put the color red which mean contradiction, if it x3 we put the color green which mean neutrality.&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/sentence_level_nli.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Hallucination score if we split the sentence&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;An answer is marked hallucinated if there is at least one contradictory statement between a sentence and the chunk with a probability greater than 50%.&lt;/p&gt;
+
+&lt;p&gt;With this approach 40  answers out of 146 are marked hallucinated(mean they have a least one contradictory statement.)&lt;/p&gt;
+
+&lt;p&gt;The problem with this is that it is very harsh, I have seen some sentence which were contradicted by one chunk and supported by other chunks, reason why I decided to try the second approach.&lt;/p&gt;
+
+&lt;h4 id=&quot;using-the-answer-without-split&quot;&gt;Using the Answer without Split&lt;/h4&gt;
+
+&lt;p&gt;In this approach the the answer is not split by sentence, each cell contains the contradiction probability between the answer and the chunks.&lt;/p&gt;
+
+&lt;p&gt;In the table the row remains the chunks and the headers is the answer.  The cell are colored with the same logic as in the first section.&lt;/p&gt;
+
+&lt;p&gt;An answer is marked invalid using the same rule as the first section.&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/answer_level_nli.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Example of a hallucinated answer without splitting&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h3 id=&quot;limitation-of-the-nli-approach&quot;&gt;Limitation of the NLI Approach&lt;/h3&gt;
+
+&lt;p&gt;While this approach is less prone to hallucination, it suffer of the limitation of the NLI model used. The model was not trained on specific domain, we may need to collect data and fine tune it on your domain to get a better accuracy on your domain data.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion-1&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Detecting hallucinations in RAG systems isn’t just about finding wrong  answers, it’s about checking whether the model’s answers are truly grounded in the retrieved context. While the “LLM-as-a-judge” approach sounds tempting, it’s a bit of a paradox: using a model that can hallucinate to detect hallucination.&lt;/p&gt;
+
+&lt;p&gt;The Natural Language Inference (NLI) approach offers an alternative. Instead of asking another LLM for its opinion, we use a smaller, more stable auto encoding model (like BERT or ALBERT) to check whether each generated statement is entailed or contradicted by the retrieved text.&lt;/p&gt;
+
+&lt;p&gt;In practice, this can be done sentence by sentence (as in SummaC) or at the full-answer level (as in the Provenance approach). It’s lightweight, interpretable, and much easier to adapt to specific domains like financial QA systems.&lt;/p&gt;
+
+&lt;p&gt;Of course, it’s not perfect. NLI models still need domain fine-tuning to capture the nuances of specialized data. But once tuned, they provide a practical and trustworthy way to measure faithfulness in RAG responses.&lt;/p&gt;
+
+&lt;p&gt;In short, NLI turns hallucination detection into a fact-checking problem one that’s explainable, measurable, and much less prone to the same issues we’re trying to fix.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://huggingface.co/transformers/v3.1.0/model_summary.html#autoregressive-models&quot;&gt;Hugging Face Blog — Autoregressive and Autoencoding Models Overview&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://aclanthology.org/C08-1066.pdf&quot;&gt;C. Manning, B. MacCartney . Modeling Semantic Containment and Exclusionin Natural Language Inference&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.cs.upc.edu/~ageno/anlp/textualEntailment.pdf&quot;&gt;Ageno, A. Textual Entailment: Natural Language Inference Approaches.&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://milvus.io/ai-quick-reference/what-techniques-can-be-used-to-detect-hallucinations-in-a-raggenerated-answer-for-example-checking-if-all-factual-claims-have-support-in-the-retrieved-text&quot;&gt;Milvus Blog — Detecting Hallucinations in RAG-Generated Answers.&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://huggingface.co/vectara/hallucination_evaluation_model&quot;&gt;Vectara — Hallucination Evaluation Model (T5-Based Cross Encoder).&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://huggingface.co/tals/albert-xlarge-vitaminc-mnli&quot;&gt;Tals — ALBERT-XLarge VitaminC MNLI Model.&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://arxiv.org/abs/2111.09525&quot;&gt;Phillipe Laban  et al. (2021). SummaC: Re-Visiting NLI-based Models for Factual Consistency Evaluation.&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://arxiv.org/html/2411.01022&quot;&gt;Tanner Sorensen. (2024). Provenance Approach for Hallucination Detection in RAG Systems.&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Mon, 10 Nov 2025 00:00:00 +0000</pubDate>
+        <link>http://localhost:4000/natural-language-inference-for-hallucination-detection-in-rag-responses</link>
+        <guid isPermaLink="true">http://localhost:4000/natural-language-inference-for-hallucination-detection-in-rag-responses</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>Batch Vector Search with PgVector and PostgreSQL Using Cross Lateral Joins</title>
         <description>&lt;p&gt;Last week I was working on a project, and I was looking for a way to query Postgres to do vector search in  a batch way to send multiple embedding vectors at once to the database and retrieve the data without the need for a for-loop.&lt;/p&gt;
 
 &lt;p&gt;I started googling online and found an old answer on StackOverflow using a query with &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;UNION&lt;/code&gt;s. When I asked Deepseek how to improve the query, it recommended I use a &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;CROSS JOIN LATERAL&lt;/code&gt;, which seemed to be faster than a normal union.&lt;/p&gt;
@@ -457,7 +710,7 @@ In the scientific literature the metric used is called SummaC.&lt;/p&gt;
 &lt;p&gt;It split the original document in block of text(sentences, or paragraph), the generated summary by the sentences. Then use a NLI model such as BERT to compute the entailment score for each sentence of generated summary vs each sentence in the original document. Those scores are saved in a matrix which is called entailment matrix.
 For SummaCZS, they reduce the entailment matrix into a one-dimensional vector by taking the maximum value in each column. Intuitively, this results in retaining the score for the document sentence that provides the strongest support for each summary sentence. Then, to get a single score for the entire summary, they simply compute the mean of the vector.
 There are other sophisticated approach of the entailment matrix using a convolutional layer.
-The bellow picture describes how the entailment matrix works.&lt;/p&gt;
+The bellow picture describes how the entailment matrix works. Cite[8]&lt;/p&gt;
 
 &lt;figure&gt;
   &lt;p&gt;&lt;img src=&quot;/assets/posts/2025-05-22-evaluation-metrics-for-summarization/sumac.png&quot; /&gt;&lt;/p&gt;
@@ -493,7 +746,10 @@ The bellow picture describes how the entailment matrix works.&lt;/p&gt;
   &lt;li&gt;Fabbri A, et al. (2021). &lt;a href=&quot;https://aclanthology.org/2021.tacl-1.24&quot;&gt;SummEval: Re-evaluating Summarization Evaluation&lt;/a&gt;.&lt;/li&gt;
   &lt;li&gt;Yan, Ziyou. (2023). &lt;a href=&quot;https://eugeneyan.com/writing/abstractive/&quot;&gt;Evaluation &amp;amp; Hallucination Detection for Abstractive Summaries&lt;/a&gt;.&lt;/li&gt;
   &lt;li&gt;He T, et al. (2008). ROUGE-C: A fully automated evaluation method for multi-document summarization. 2008 IEEE International Conference on Granular Computing, Hangzhou, China, pp. 269-274. doi: &lt;a href=&quot;https://doi.org/10.1109/GRC.2008.4664680&quot;&gt;10.1109/GRC.2008.4664680&lt;/a&gt;.&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://sbert.net/examples/sentence_transformer/training/nli/README.html&quot;&gt;Natural Language Inference with Sentence Transformer&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;a href=&quot;https://sbert.net/examples/sentence_transformer/training/nli/README.html&quot;&gt;Natural Language Inference with Sentence Transformer&lt;/a&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://aclanthology.org/2022.tacl-1.10/&quot;&gt;SummaC: Re-Visiting NLI-based Models for Inconsistency Detection in Summarization&lt;/a&gt; (Laban et al., TACL 2022)&lt;/li&gt;
 &lt;/ol&gt;
 
 </description>
@@ -2400,696 +2656,6 @@ We will create our Daemonset with&lt;/p&gt;
         <pubDate>Wed, 19 Jun 2024 14:20:27 +0100</pubDate>
         <link>http://localhost:4000/mounting-oracle-cloud-storage-as-volume-in-containers-with-kubernetes</link>
         <guid isPermaLink="true">http://localhost:4000/mounting-oracle-cloud-storage-as-volume-in-containers-with-kubernetes</guid>
-        
-        
-      </item>
-    
-      <item>
-        <title>Deploy your language models to production using ONNX runtime and the Triton inference server</title>
-        <description>
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2024-04-07-deploying-language-model-with-onnx-runtime-on-triton-inference-server/cover-picture.png&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;Lac Kivu in East DRC&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;p&gt;You are a Data Scientist who has finally trained a language model and it works in a jupyter notebook and you are happy with your results. Now you want to expose it to the users so that they can interact with it.&lt;/p&gt;
-
-&lt;p&gt;You have different options to serve your model to your users. You can use the jupyter notebook directly in production 🤣. You can wrap the model in a pickle file and serve it using an API 🤪. Both options work, but can they handle millions of requests per second in a production environment? In this post, I will show how you can use modern tools to deploy a language model in a scalable way.  We will use the ONNX runtime, Triton inference server, Docker and Kubernetes. These tools will help us to deploy  a production-ready language model.&lt;/p&gt;
-
-&lt;p&gt;This guide is addressed to Data scientists, Machine Learning Engineers and researchers aiming to use their Language Models in Production. It discusses the engineering principles of scalable language models APIs.&lt;/p&gt;
-
-&lt;p&gt;It will be divided into multiple parts. In the first part, we will prepare the model for a production setting. We will use the ONNX runtime and Docker container to achieve that goal. Finally, in the second part, we will learn how to scale our Apis using Kubernetes.&lt;/p&gt;
-
-&lt;p&gt;If I have time later, I’ll explain how to use the embedding API in a  downstream app  like a Retrieval Augmentation Generation (RAG).&lt;/p&gt;
-
-&lt;p&gt;Before we dive into the deployment bits of this application, let us first review some theory about language models.&lt;/p&gt;
-
-&lt;p&gt;We will be deploying an embedding model, so let start by defining a language model.&lt;/p&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2024-04-07-deploying-language-model-with-onnx-runtime-on-triton-inference-server/gorilla.png&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;Mountain Gorilla, one our similar cousin.&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;h2 id=&quot;embeddings&quot;&gt;Embeddings.&lt;/h2&gt;
-
-&lt;p&gt;Embedding models are the backbone of generative AI, they are representations of words in a vector space. They capture words semantics such as, with them similar vectors represent similar words.&lt;/p&gt;
-
-&lt;p&gt;Contextual embeddings are embeddings such as each word is represented with a vector given its context.&lt;/p&gt;
-
-&lt;p&gt;Let’s look at those two examples:&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;The bank of the river Thames is located in South London.&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;I am going to withdraw cash at Lloyds Bank.&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;In those two sentences the word &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;bank&lt;/code&gt; has two different meanings. In the first, bank means &lt;em&gt;the land alongside or sloping down to a river or lake.&lt;/em&gt; In the second sentence, it means &lt;em&gt;a place where you save money.&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;Embedding models can capture those differences and represent words with two different vectors according to the context.&lt;/p&gt;
-
-&lt;p&gt;This is not a post to explain how embedding models are built, if you want to learn more about them refer to &lt;a href=&quot;https://mccormickml.com/2019/05/14/BERT-word-embeddings-tutorial/&quot;&gt;this post.&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;But one thing to know is that embedding models are built with language models or Large language models for the majority of cases.&lt;/p&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2024-04-07-deploying-language-model-with-onnx-runtime-on-triton-inference-server/word-embeddings-representation.webp&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;Words Representation in 2D vector Space.&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;h2 id=&quot;large-language-model&quot;&gt;Large Language Model.&lt;/h2&gt;
-
-&lt;p&gt;Large language models are neural networks or probabilistic models that can predict the next word given the previous words.&lt;/p&gt;
-
-&lt;p&gt;One of the most common neural network architectures that power language models is the Transformer model. It was introduced in 2017 by Google researchers. Those models have a powerful capacity when it comes to understanding words and their meanings because they are trained on a large corpus of documents.&lt;/p&gt;
-
-&lt;p&gt;During their training, transformers’ models can learn contextual word embeddings.  Those embeddings are useful in downstream applications such as chatbots, documents classification, topic modeling, documents clustering  et consort.&lt;/p&gt;
-
-&lt;p&gt;Again, this post is not about language models, there  are legions on the internet, my favorite one is the  &lt;a href=&quot;https://jalammar.github.io/illustrated-transformer/&quot;&gt;illustrated trasnfomer&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;If this post is not about word embedding theory, or large language model theory what is it about?&lt;/p&gt;
-
-&lt;p&gt;Nice question, this post is about deploying a large language model. We assume taht you have a model trained on you want to deploy it. We will learn how to create an embedding service, a api that developers can query to generate document embeddings.&lt;/p&gt;
-
-&lt;p&gt;We will build a scalable API developers can query it to get word embeddings of their sentences. They can use the embeddings in downstream applications. This API can be part of a chatbot, or a Retrieval Augmented Generation application.&lt;/p&gt;
-
-&lt;p&gt;I made it for educational purposes while learning how to deploy a language model using Kubernetes.  If you want a production-ready application that can support multiple embedding models  &lt;a href=&quot;https://github.com/jina-ai/clip-as-service&quot;&gt;checkout this repository.&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Enough talking let’s show us the code!&lt;/p&gt;
-
-&lt;h2 id=&quot;the-embedding-models&quot;&gt;The embedding models.&lt;/h2&gt;
-
-&lt;p&gt;In this post, we will explore the embedding model generated by the BioLinkBert. The BioLinkBert model is a model from the BERT family but it was fine-tuned on documents from the medical domain. The reason I used the Biolink model is that I wanted to build a chatbot application for the medical domain in the future.&lt;/p&gt;
-
-&lt;p&gt;The embedding of words is the last hidden state of a transformer model where the input is the word encoded as text. Let us see how it works  in practice. We will be using a custom Bert model which inherits the base Bert model from Huggingface.&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;torch&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;dataclasses&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataclass&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;typing&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Optional&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Mapping&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OrderedDict&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;transformers.onnx&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OnnxConfig&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;transformers.utils&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ModelOutput&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;transformers&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BertModel&lt;/span&gt;
-
-&lt;span class=&quot;o&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dataclass&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;EmbeddingOutput&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ModelOutput&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;last_hidden_state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Optional&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;torch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FloatTensor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;
-
-
-&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CustomEmbeddingBertModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BertModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forward&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;input_ids&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Optional&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;torch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tensor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;attention_mask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Optional&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;torch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tensor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;head_mask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Optional&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;torch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tensor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;inputs_embeds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Optional&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;torch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tensor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EmbeddingOutput&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;embeddings&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forward&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input_ids&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input_ids&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                     &lt;span class=&quot;n&quot;&gt;attention_mask&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;attention_mask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                     &lt;span class=&quot;n&quot;&gt;head_mask&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;head_mask&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                     &lt;span class=&quot;n&quot;&gt;inputs_embeds&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inputs_embeds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                     &lt;span class=&quot;n&quot;&gt;output_attentions&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                     &lt;span class=&quot;n&quot;&gt;output_hidden_states&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                     &lt;span class=&quot;n&quot;&gt;return_dict&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;mean_embedding&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;embeddings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;last_hidden_state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mean&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dim&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;embedding_output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;EmbeddingOutput&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;last_hidden_state&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mean_embedding&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;embedding_output&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Our custom embedding is  a wrapper around the Bert embedding model. It  which take the input ids and return the embedding of a sentence. The input ids are the tokenized version of a sentence. The embeddings of the sentence are the average of the embedding of all words in a  sentence.&lt;/p&gt;
-
-&lt;p&gt;Here is how that work in practice.&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_id&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'michiyasunaga/BioLinkBERT-large'&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;base_model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CustomEmbeddingBertModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;from_pretrained&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Before passing the text to the embedding, it needs to be transformed in a tokenizer.&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;transformers&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoTokenizer&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoTokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;from_pretrained&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-
-&lt;span class=&quot;n&quot;&gt;test_input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;sa&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;what is the cause of Covid&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;encoded_input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
-                          &lt;span class=&quot;n&quot;&gt;return_tensors&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'pt'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                          &lt;span class=&quot;n&quot;&gt;max_length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;512&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                          &lt;span class=&quot;n&quot;&gt;truncation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;With our encoded_input and the base model we can generate the text embedding for our text input.&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;encoded_input&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;encoded_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'token_type_ids'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;embedding_output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;base_model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoded_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;text_embeddings&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;embedding_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;last_hidden_state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;detach&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;numpy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text_embeddings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The text embedding is the embedding representation of the sentence in text_input.
-It can be use in downstream application in different ways.&lt;/p&gt;
-
-&lt;p&gt;The next step is save the model in the format we can use to deploy it in production.&lt;/p&gt;
-
-&lt;h2 id=&quot;exporting-the-model-to-onnx-format&quot;&gt;Exporting the Model to Onnx format.&lt;/h2&gt;
-
-&lt;h3 id=&quot;what-is-the-onnx-format&quot;&gt;What is the ONNX format?&lt;/h3&gt;
-
-&lt;p&gt;ONNX stands for Open Neural Network Exchange. It is an open format built to represent machine learning models in a framework and language-agnostic way.&lt;/p&gt;
-
-&lt;p&gt;As you may know, neural networks are computation graphs with input, weights, and operations. ONNX format is a way of saving neural networks as computation graphs. That  computational graph represents the flow of data through the neural network.&lt;/p&gt;
-
-&lt;p&gt;The key benefits of saving neural networks in the ONNX format are interoperability and hardware access. Any deep learning platform can read a neural network saved in the ONNX format.  For example, a model trained in Pytorch can be exported to ONNX format and imported in Tensorflow and vice versa.&lt;/p&gt;
-
-&lt;p&gt;You don’t need to use Python to read a model saved as ONNX. You can use any programming language of your choice, such as Javascript, C, or C++.&lt;/p&gt;
-
-&lt;p&gt;ONNX makes the model easier to access hardware optimizations. You can apply other optimizations, such as quantization, to your ONNX model.&lt;/p&gt;
-
-&lt;p&gt;Let us see how we can convert our model to ONNX format to use the full benefits of it.&lt;/p&gt;
-
-&lt;p&gt;Let’s see how we can achieve that with the code.&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pathlib&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;model_repository&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cwd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;joinpath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;models_repository&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model_repository&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;joinpath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;retrieval&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;embedding_model&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mkdir&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exist_ok&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parents&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;model_path&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;err&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ls&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;tuple&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoded_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;torch.onnx&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;export&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;torch_onnx_export&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;torch_onnx_export&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;base_model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;nb&quot;&gt;tuple&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encoded_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()),&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;joinpath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'bio-bert-embedder.onnx'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;input_names&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'input_ids'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'attention_mask'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;dynamic_axes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'input_ids'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'batch_size'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'sequence'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-                  &lt;span class=&quot;s&quot;&gt;'attention_mask'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'batch_size'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'sequence'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-                  &lt;span class=&quot;s&quot;&gt;'last_hidden_state'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'batch_size'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'sequence'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}},&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;do_constant_folding&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;opset_version&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;base_model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;save_pretrained&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;With the above code, we have our model exported into onnx format and ready to be deployed in production.&lt;/p&gt;
-
-&lt;h2 id=&quot;model-deployment-on-docker-with-the-onnx-runtime&quot;&gt;Model deployment on Docker with the ONNX Runtime.&lt;/h2&gt;
-
-&lt;p&gt;In this section, we will learn how  to use the model in a docker container.&lt;/p&gt;
-
-&lt;p&gt;One of the most obvious solutions is to deploy a model and wrap it in with Flask or Fastapi. While this solution can work in practice, it has some latency due to related the fact that the API is written in Python. For this blog I will try a different approach, I will deploy the model using the onnx runtime which is a C++ backend. We will leverage the fact that our model in ONNX format is platform agnostic and we can deploy on any language backend.&lt;/p&gt;
-
-&lt;h3 id=&quot;triton-server&quot;&gt;Triton Server&lt;/h3&gt;
-
-&lt;p&gt;Triton is a software tool for deploying machine learning models for inference. It is designed to produce high-quality inference across different hardware platforms, either GPU or CPU. It also supports inference across cloud, data center, and embedded devices.&lt;/p&gt;
-
-&lt;p&gt;One of the advantages of the triton server is that it supports dynamic batching and concurrent model execution.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Dynamic batching:&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;For models that support batching, which is the case for deep learning models, triton implements scheduling and batching algorithms.  That approach combines individual requests to improve inference throughput.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Concurrency model execution is the capacity to run simultaneously multiple models on the same GPU or various GPUs.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;triton-server-backend&quot;&gt;Triton Server Backend&lt;/h3&gt;
-
-&lt;p&gt;Triton supports different backends to execute the model. A backend is a wrapper around a deep learning framework like Pytorch, TensorFlow, TensorRT, or ONNX Runtime.&lt;/p&gt;
-
-&lt;p&gt;Two backend types interested us for this post: the Python Backend and the ONNX runtime backend.&lt;/p&gt;
-
-&lt;p&gt;The ONNX runtime backend executes ONNX models, and the Python backend allows the writing of the model logic in Python.&lt;/p&gt;
-
-&lt;p&gt;In this post, we will be focused on the ONNX and the Python backend.&lt;/p&gt;
-
-&lt;h3 id=&quot;the-triton-server&quot;&gt;The Triton Server&lt;/h3&gt;
-
-&lt;p&gt;Let us set up the model repository for the triton inference server.&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-&lt;span class=&quot;err&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;touch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pbtxt&lt;/span&gt;
-
-
-&lt;span class=&quot;err&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mkdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ensemble_model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-&lt;span class=&quot;err&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;touch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ensemble_model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pbtxt&lt;/span&gt;
-
-&lt;span class=&quot;err&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mkdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-&lt;span class=&quot;err&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;touch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;py&lt;/span&gt;
-
-&lt;span class=&quot;err&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;touch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pbtxt&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;This bash script will create the model repository  for our embedding model. The next section will set up the files in that model repository to run our models.&lt;/p&gt;
-
-&lt;p&gt;The model repository should have three components, the tokenizer, the embedding model, and the ensemble model.
-The tokenizer is the configuration of our tokenizer model, it uses the Python backend and handles the tokenization of our text input.
-The tokenizer repository should have the files from our tokenizer, the model code, and the model configuration.&lt;/p&gt;
-
-&lt;p&gt;It should have the following layout:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;└── tokenizer
-    ├── 1
-    │   ├── __pycache__
-    │   ├── config.json
-    │   ├── model.py
-    │   ├── special_tokens_map.json
-    │   ├── tokenizer.json
-    │   ├── tokenizer_config.json
-    │   └── vocab.txt
-    └── config.pbtxt
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;To create the tokenizer file, we will have to save our tokenizer to the tokenizer repository, we will use the following code.&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;model_repository&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-
-&lt;span class=&quot;n&quot;&gt;tokenizer_path&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;model_repository&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;joinpath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;retrieval&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;tokenizer&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;tokenizer_path&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tokenizer_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;joinpath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;save_pretrained&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;From that tokenizer we will create the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;model.py&lt;/code&gt; file, which will handle the tokeinization part.&lt;/p&gt;
-
-&lt;p&gt;Here is how the model should look like&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;%%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writefile&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;py&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;os&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;typing&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;
-
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;triton_python_backend_utils&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pb_utils&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;transformers&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoTokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PreTrainedTokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TensorType&lt;/span&gt;
-
-
-&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TritonPythonModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PreTrainedTokenizer&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;initialize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
-        Initialize the tokenization process
-        :param args: arguments from Triton config file
-        &quot;&quot;&quot;&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;# more variables in https://github.com/triton-inference-server/python_backend/blob/main/src/python.cc
-&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;os&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;join&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;model_repository&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;model_version&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
-        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AutoTokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;from_pretrained&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;List[List[pb_utils.Tensor]]&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
-        Parse and tokenize each request
-        :param requests: 1 or more requests received by Triton server.
-        :return: text as input tensors
-        &quot;&quot;&quot;&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;responses&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;# for loop for batch requests (disabled in our case)
-&lt;/span&gt;        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;request&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requests&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-            &lt;span class=&quot;c1&quot;&gt;# binary data typed back to string
-&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;query&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;UTF-8&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-                &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pb_utils&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;get_input_tensor_by_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;TEXT&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-                &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as_numpy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-                &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tolist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ndarray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;query&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;return_tensors&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TensorType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NUMPY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;padding&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;truncation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;c1&quot;&gt;# tensorrt uses int32 as input type, ort uses int64
-&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;astype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;v&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;items&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;
-            &lt;span class=&quot;c1&quot;&gt;# communicate the tokenization results to Triton server
-&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;outputs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;input_name&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model_input_names&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;tensor_input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pb_utils&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Tensor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tokens&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;input_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;outputs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tensor_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-            &lt;span class=&quot;n&quot;&gt;inference_response&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pb_utils&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InferenceResponse&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;output_tensors&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;responses&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inference_response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;responses&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;initialize&lt;/code&gt; method from this class will create our tokenizer from this folder. All our tokenizer files will be initialized from it.&lt;/p&gt;
-
-&lt;p&gt;The &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;execute&lt;/code&gt; method is the one that handles the request. It can take multiple requests and parse them. Finally,   create the  query from the text, and return the tokenized text.&lt;/p&gt;
-
-&lt;p&gt;With our tokenizer setup, let us configure the Python server to use it.&lt;/p&gt;
-
-&lt;p&gt;The content of the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;tokenizer/config.pbxt&lt;/code&gt; should look like this.&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;%%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writefile&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tokenizer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pbtxt&lt;/span&gt;
-
-
-&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;tokenizer&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;max_batch_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;backend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;python&quot;&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;input&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;TEXT&quot;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;data_type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TYPE_STRING&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;dims&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;input_ids&quot;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;data_type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TYPE_INT64&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;dims&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;attention_mask&quot;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;data_type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TYPE_INT64&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;dims&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;instance_group&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KIND_CPU&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;In this file, we specify that our backend is a Python backend.  It will take an input named text, with dimension -1. The dimension -1 which means dynamic or it can be of any size. It returns the inputs_ids, and the attention_mask and will run on a CPU.&lt;/p&gt;
-
-&lt;p&gt;The second component of our model is the embedding model itself, it has the following layout:&lt;/p&gt;
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;├── embedding_model
-│   ├── 1
-│   │   ├── bio-bert-embedder.onnx
-│   │   └── config.json
-│   └── config.pbtxt
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Let look at the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;config.pbtxt&lt;/code&gt; for the embedding model&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;%%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writefile&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pbtxt&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;embedding_model&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;platform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;onnxruntime_onnx&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;backend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;onnxruntime&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;default_model_filename&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;bio-bert-embedder.onnx&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;max_batch_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;input&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;input_ids&quot;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;data_type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TYPE_INT64&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;dims&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;attention_mask&quot;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;data_type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TYPE_INT64&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;dims&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;3391&quot;&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;# not sure why this is name 3391, need to double check
-&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;data_type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TYPE_FP32&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;dims&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1024&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;instance_group&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KIND_CPU&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;It is the configuration file for our embedding model, we can see that it takes the output from our tokenizer model and produces the embedding vector of shape, -1, 1024. With -1 meaning the dynamic shape, and 1024 is our embedding size.&lt;/p&gt;
-
-&lt;p&gt;Note: for some reason, the model output is named &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;3391&lt;/code&gt; I  don’t know why it is named like that.&lt;/p&gt;
-
-&lt;p&gt;We can connect our embedding model and the tokenizer’s input and output with the ensemble model. It should have the following layout:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;├── ensemble_model
-│   ├── 1
-│   └── config.pbtxt
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;And the content of the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;config.pbtxt&lt;/code&gt; file in the ensemble model should be like this:&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;%%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writefile&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_model_path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ensemble_model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pbtxt&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;ensemble_model&quot;&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;# maximum batch size 
-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;max_batch_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; 
-&lt;span class=&quot;n&quot;&gt;platform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;ensemble&quot;&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;#input to the model 
-&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;input&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;TEXT&quot;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;data_type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TYPE_STRING&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;dims&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; 
-    &lt;span class=&quot;c1&quot;&gt;# -1 means dynamic axis, aka this dimension may change 
-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;#output of the model 
-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;3391&quot;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;data_type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TYPE_FP32&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;dims&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1024&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; 
-    &lt;span class=&quot;c1&quot;&gt;# two dimensional tensor, where 1st dimension: batch-size, 2nd dimension: #classes, not sure why name is 3391.
-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;#Type of scheduler to be used
-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ensemble_scheduling&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;step&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;model_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;tokenizer&quot;&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;model_version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;input_map&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;TEXT&quot;&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;TEXT&quot;&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;output_map&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;input_ids&quot;&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;input_ids&quot;&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;attention_mask&quot;&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;attention_mask&quot;&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;model_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;embedding_model&quot;&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;model_version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;input_map&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;input_ids&quot;&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;input_ids&quot;&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;attention_mask&quot;&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;attention_mask&quot;&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;output_map&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;3391&quot;&lt;/span&gt;
-                &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;3391&quot;&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;In a nutshell, this config connects our tokenizer and the embedding model. The output of the tokenizer model is passed to the embedding model to produce the embedding vector.&lt;/p&gt;
-
-&lt;p&gt;If the three components were configured correctly we should have the following layout:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-models_repository/retrieval
-├── embedding_model
-│   ├── 1
-│   │   ├── bio-bert-embedder.onnx
-│   │   └── config.json
-│   └── config.pbtxt
-├── ensemble_model
-│   ├── 1
-│   └── config.pbtxt
-└── tokenizer
-    ├── 1
-    │   ├── __pycache__
-    │   ├── config.json
-    │   ├── model.py
-    │   ├── special_tokens_map.json
-    │   ├── tokenizer.json
-    │   ├── tokenizer_config.json
-    │   └── vocab.txt
-    └── config.pbtxt
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;If you have all the following components we can go to the next stage.&lt;/p&gt;
-
-&lt;h3 id=&quot;building-the-triton-inference-server-image&quot;&gt;Building the triton Inference server image.&lt;/h3&gt;
-
-&lt;p&gt;In this section, we will see how to build the triton inference server image. The base triton inference server docker image is huge and can weigh up to 10 GB. In the triton inference server there is a way to build a Cpu only image for triton.  I wasn’t able to build it from my Macbook.&lt;/p&gt;
-
-&lt;p&gt;We will be using the image &lt;a href=&quot;https://github.com/Jackiexiao&quot;&gt;Jackie Xiao&lt;/a&gt; built for that purpose.&lt;/p&gt;
-
-&lt;p&gt;It is a CPU-only image, hence the small size of 500Mb. If you are deploying the model in an infrastructure with a GPU, you will need to use the full Triton Image which is huge.&lt;/p&gt;
-
-&lt;p&gt;Here is the docker file used to build this image.&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;o&quot;&gt;%%&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writefile&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cwd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__str__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dockerfile&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;# Use the base image
-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jackiexiao&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tritonserver&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;23.12&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;onnx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;py&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cpu&lt;/span&gt;
-
-
-
-&lt;span class=&quot;c1&quot;&gt;# Install the required Python packages
-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RUN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pip&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;transformers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;4.27&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sacremoses&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
-
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;You can see that we are pulling the base image and install in it the transformer and the Moses tokenizer.&lt;/p&gt;
-
-&lt;p&gt;With that docker image, we can build the docker image.&lt;/p&gt;
-
-&lt;p&gt;` docker build -t espymur/triton-onnx-cpu:dev  -f Dockerfile .`&lt;/p&gt;
-
-&lt;p&gt;If the image was successfully built we push it to the docker image repository:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;docker push espymur/triton-onnx-cpu:dev&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;After pushing the image to the repository, you can start your docker container with the triton server in it.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
- docker run &lt;span class=&quot;nt&quot;&gt;--rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 8000:8000 &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 8001:8001 &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 8002:8002  &lt;span class=&quot;nt&quot;&gt;-v&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;PWD&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;/models_repository/retrieval:/models  espymur/triton-onnx-cpu:dev tritonserver &lt;span class=&quot;nt&quot;&gt;--model-repository&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/models
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;This command does the following:&lt;/p&gt;
-
-&lt;p&gt;It starts the docker container with the triton-onnx-cpu:dev image.&lt;/p&gt;
-
-&lt;p&gt;It exposes the different ports from the container to the external environment:&lt;/p&gt;
-
-&lt;p&gt;For HTTP connection,  it maps the port 8000 from the container to the port 8000 of the external environment.&lt;/p&gt;
-
-&lt;p&gt;For GRPC, it maps the port 8001 to the port 8001.&lt;/p&gt;
-
-&lt;p&gt;For the metric server, it maps the port 8002 to the port 8002&lt;/p&gt;
-
-&lt;p&gt;It maps the local directory, named &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;model_repository&lt;/code&gt; to the folder named &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;/models&lt;/code&gt; in the docker container by using volumes.&lt;/p&gt;
-
-&lt;p&gt;We specify that the triton server should use the model folder as the model repository.&lt;/p&gt;
-
-&lt;p&gt;If everything goes well with that command you should be able to see the following output which tells us which port is used by the model.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-I0329 18:42:18.452806 1 grpc_server.cc:2495] Started GRPCInferenceService at 0.0.0.0:8001
-
-I0329 18:42:18.460674 1 http_server.cc:4619] Started HTTPService at 0.0.0.0:8000
-
-I0329 18:42:18.520315 1 http_server.cc:282] Started Metrics Service at 0.0.0.0:8002
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;With that code, we have our embedding API running and we can now send requests to it.&lt;/p&gt;
-
-&lt;h3 id=&quot;making-request-to-the-inference-server&quot;&gt;Making Request to the inference Server.&lt;/h3&gt;
-
-&lt;p&gt;We have now built our model, the next step is to make an inference request to it and analyze the response.&lt;/p&gt;
-
-&lt;p&gt;Since the model is deployed as a REST API you can make inference requests to it using any client of your choice in any language&lt;/p&gt;
-
-&lt;p&gt;.  The inference server is very strict in terms of what it expects as input, and how to interact with it. Fortunately, they have described different clients to use to build the inputs.&lt;/p&gt;
-
-&lt;p&gt;For demonstration purposes, I will be using the Python HTTP client to make the inference requests.&lt;/p&gt;
-
-&lt;p&gt;But nothing restricted you from using your language of choice to make HTTP requests to the API.&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;tritonclient.http&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;httpclient&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;localhost:8000&quot;&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;http_client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;httpclient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InferenceServerClient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;verbose&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-                  
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The above code creates the http client, with our server url, let us define the input and output of it.&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;text_input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;httpclient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InferInput&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'TEXT'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;datatype&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'BYTES'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;embedding_output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;httpclient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InferRequestedOutput&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;3391&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;binary_data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Those are the placeholder for our inputs and output, let us fill them now:&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;sentences&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;what cause covid&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;np_input_data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;asarray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sentences&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dtype&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;np_input_data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;text_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_data_from_numpy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np_input_data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;results&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;http_client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;infer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model_name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ensemble_model&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;inputs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;embedding_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;We can now convert back the output to numpy using&lt;/p&gt;
-
-&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;inference_output&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;results&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;as_numpy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'3391'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inference_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;That is all we have our embedding API, which takes the text and produces the embedding vector.&lt;/p&gt;
-
-&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
-
-&lt;p&gt;In this post, we have learned how to deploy an embedding model as an API using the triton inference server. The knowledge learned in this post can be used to deploy any transformer model  with an encoder or decoder using the triton inference server. Any model from the BERT, or GPT family.  It can slightly  be adapted to use with encoder-decoder models such as T5 or M2M.&lt;/p&gt;
-
-&lt;p&gt;Once we deploy the model to the production server it will grow with users and need to scale. In the second part of this series, we will learn how to scale the model using Kubernetes.&lt;/p&gt;
-
-</description>
-        <pubDate>Sun, 07 Apr 2024 23:12:57 +0100</pubDate>
-        <link>http://localhost:4000/deploying-language-model-with-onnx-runtime-on-triton-inference-server</link>
-        <guid isPermaLink="true">http://localhost:4000/deploying-language-model-with-onnx-runtime-on-triton-inference-server</guid>
         
         
       </item>
