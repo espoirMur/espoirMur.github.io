@@ -84,7 +84,7 @@ Let's note that the Congolese government made two mistakes back then:
 - They did not disarm the Hutu Refugees who came to Congo.
 - They did not send them far away from the Rwandan border. Like 150 km as per UN Refugee Agency (HCR) law. 
 
-Those Hutu refugees were a <<bombe a retardement> we brought in the country.
+Those Hutu refugees were a <<bombe a retardement> we brought in the country. Those Hutu refugees comitted atrocities in the Region and later created a mouvement called Force Democratic pour la Liberation du Rwanda(FDLR). There is a lot to talk about the FDLR but again that is a story for another post.
 It is in that context that the first Congo war started.
 
 PS: There is also a post that need to be written on Operation Turquoise to show how France is responsible for the chaos created by Rwanda refugees who came to Congo.
@@ -228,18 +228,11 @@ This is far from being a perfect story, I did my best to summarise what I learne
 ## References.
 
 - Africa world's war, Gongo, the Rwandan Genocide, and the making of a continental catastrophe by Genrard Prunnier. [link](https://www.amazon.co.uk/Africas-World-War-Continental-Catastrophe/dp/0199754209/ref=tmm_pap_swatch_0?_encoding=UTF8&sr=)
-
-
 - Dancing the Glory of the Monsters. By Jason K Stearns [Link](https://www.amazon.co.uk/Dancing-Glory-Monsters-Collapse-Africa/dp/1610391071)
-
 - La Guerre a l'est, enjeux, véritées oubliées et perspective de paix.. DR MUKULMANYA wa N'GATE ZENDA. [Link](https://www.amazon.fr/guerre-lest-v%C3%A9rit%C3%A9s-oubli%C3%A9es-perspectives/dp/2343249679)
-
 - The war that doesn't say its name, The unending conflict in the Congo. Jason K Stearns. [Link](https://press.princeton.edu/books/hardcover/9780691194080/the-war-that-doesnt-say-its-name)
-
 - Holocauste au Congo, Ometra de la communauté international, By Charles Onana[Link](https://www.amazon.com/Holocauste-Congo-LOmerta-communaut%C3%A9-internationale-ebook/dp/B0C24NDM74?ref_=ast_author_mpb)
-
 - The Path of Genocide, the Rwanda crisis from Uganda to Zaire, [Link](https://www.diva-portal.org/smash/get/diva2:276851/FULLTEXT01.pdf) this one is hard to find online, may be Kagame have removed it form bookshops.
-
 - The Great African War by Filip REYNTJENS.
 -  The Kitona Operation, Rwanda’s Gamble to Capture Kinshasa and the Misreading of an “Ally” [Link](https://ndupress.ndu.edu/Portals/68/Documents/jfq/jfq-68/JFQ-68_99-104_Stejskal.pdf)
 
