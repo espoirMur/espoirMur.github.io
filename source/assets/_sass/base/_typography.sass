@@ -4,7 +4,7 @@ html
   font-size: $unit-font-size
 
 body
-  color: $base-font-color
+  color: var(--text-color)
   font-family: $base-font-family
   font-feature-settings: "kern", "liga", "pnum"
   font-size: $base-font-size
@@ -46,13 +46,14 @@ small
   opacity: .75
 
 a
-  color: $action-color
+  color: var(--accent-color)
   text-decoration: none
+  transition: color 0.3s ease
 
   &:active,
   &:focus,
   &:hover
-    color: shade($action-color, 25%)
+    color: var(--link-hover)
 
 hr
   border-bottom: $base-border

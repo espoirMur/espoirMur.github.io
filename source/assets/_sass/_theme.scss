@@ -1,0 +1,81 @@
+// Theme colors using CSS custom properties
+// Enables runtime theme switching between dark and light modes
+
+:root {
+  // Light theme (default)
+  --bg-color: #f5f5f5;
+  --bg-secondary: #ffffff;
+  --text-color: #0d0d28;
+  --text-muted: #181824;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --link-color: #111111;
+  --link-hover: #1a1a2e;
+  --accent-color: #9920dd;
+  --card-bg: #ffffff;
+  --card-shadow: rgba(0, 0, 0, 0.1);
+  --code-bg: #f0f0f0;
+  --header-bg: #f5f5f5;
+}
+
+[data-theme="dark"] {
+  --bg-color: #181824;
+  --bg-secondary: #232333;
+  --text-color: #f0f0f0;
+  --text-muted: #9a9a9a;
+  --border-color: rgba(222, 222, 222, 0.5);
+  --link-color: #9a9a9a;
+  --link-hover: #dedede;
+  --accent-color: #b840fd;
+  --card-bg: #181824;
+  --card-shadow: rgba(0, 0, 0, 0.3);
+  --code-bg: #2d2d3d;
+  --header-bg: #181824;
+}
+
+// Theme toggle button styles
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: 15px;
+  color: var(--link-color);
+  font-size: 1.2rem;
+  transition:
+    color 0.3s ease,
+    transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: var(--accent-color);
+    transform: scale(1.1);
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  // Moon icon visible by default (light mode - click to go dark)
+  .icon-moon {
+    display: inline-block;
+  }
+
+  // Sun icon hidden by default
+  .icon-sun {
+    display: none;
+  }
+}
+
+// In dark mode, show sun (to switch to light), hide moon
+[data-theme="dark"] {
+  .theme-toggle {
+    .icon-moon {
+      display: none;
+    }
+    .icon-sun {
+      display: inline-block;
+    }
+  }
+}

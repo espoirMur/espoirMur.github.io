@@ -8,12 +8,13 @@
     padding: 0 ($base-spacing / 2.5)
 
   a
-    color: $medium-gray-color
+    color: var(--text-muted)
+    transition: color 0.3s ease
 
     &:hover,
     &:active,
     &:focus
-      color: $primary-color
+      color: var(--accent-color)
 
   i
     font-size: 1.6em

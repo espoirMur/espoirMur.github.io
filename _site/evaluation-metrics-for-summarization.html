@@ -7,6 +7,17 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  // Theme initialization - runs before page renders to prevent flash
+  (function() {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = savedTheme || (prefersDark ? 'dark' : 'light'); // Default to light
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  })();
+</script>
 <script type="text/javascript" async
   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
@@ -67,6 +78,10 @@
           <li><a href="/drafts" title="drafts();">drafts();</a></li>
         
       </ul>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode" title="Toggle dark/light mode">
+        <i class="fa-solid fa-sun icon-sun"></i>
+        <i class="fa-solid fa-moon icon-moon"></i>
+      </button>
     </nav>
   </div>
 </header>
@@ -230,9 +245,19 @@ This prevents Cusdis from appear everywhere-->
   data-page-id="/evaluation-metrics-for-summarization"
   data-page-url="http://localhost:4000/evaluation-metrics-for-summarization"
   data-page-title="Evaluation Metrics For Summarization"
-  data-theme="dark"
+  data-theme="light"
 ></div>
 <script defer src="https://cusdis.com/js/cusdis.es.js"></script>
+<script>
+  // Sync Cusdis theme with site theme
+  document.addEventListener('DOMContentLoaded', function() {
+    const cusdis = document.getElementById('cusdis_thread');
+    if (cusdis) {
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      cusdis.setAttribute('data-theme', theme);
+    }
+  });
+</script>
 
   </div>
 
@@ -257,5 +282,45 @@ This prevents Cusdis from appear everywhere-->
 </footer>
 
 
+  <script>
+    // Theme toggle functionality
+    (function() {
+      const toggle = document.getElementById('themeToggle');
+      if (!toggle) return;
+
+      function getTheme() {
+        return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      }
+
+      function setTheme(theme) {
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+        }
+        localStorage.setItem('theme', theme);
+
+        // Update Cusdis theme if present
+        const cusdis = document.getElementById('cusdis_thread');
+        if (cusdis && window.CUSDIS) {
+          cusdis.setAttribute('data-theme', theme);
+          window.CUSDIS.setTheme(theme);
+        }
+      }
+
+      toggle.addEventListener('click', function() {
+        const currentTheme = getTheme();
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+      });
+
+      // Listen for system theme changes
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+        if (!localStorage.getItem('theme')) {
+          setTheme(e.matches ? 'dark' : 'light');
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
