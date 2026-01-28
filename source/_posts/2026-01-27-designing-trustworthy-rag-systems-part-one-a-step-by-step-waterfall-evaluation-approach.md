@@ -4,14 +4,14 @@ title: "Designing Trustworthy RAG Systems. Part One: A Step By Step Waterfall Ev
 permalink: designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach
 date: 2026-01-27 14:59:47
 comments: true
-description: "Designing Trustworthy RAG Systems. Part One: A Step-By-Step Waterfall Evaluation Approach"
-keywords: ""
+description: "Learn how to evaluate RAG systems in production using a waterfall framework with retrieval checks, faithfulness validation, and relevance scoring. Includes practical methods like NLI, RAGAS, and LLM-as-judge."
+keywords: "RAG evaluation, hallucination detection, faithfulness check, NLI for RAG, production RAG systems, how to evaluate RAG without ground truth, detecting hallucinations in RAG systems,production RAG evaluation pipeline, evaluate LLM generated answers "
 categories:
 
 tags:
 
 published: true
-is_draft: true
+is_draft: false
 ---
 
 {% include image.html name="scale-main-image.png" caption="Main Image" %}
@@ -70,7 +70,7 @@ At the end of this step we are only dealing with questions for which we are sure
 
 Given the question and the set of chunks or reference text, we need to find out if, **based only on the following reference texts, it is possible to answer the question**. This is a binary Yes/No task. If "No", route to agent. This separates retrieval failure from generation failure.
 
-**Methods:**
+### **Methods:**
 
 This check can be implemented by using two different approaches:
 
@@ -97,7 +97,7 @@ These types of checks are more expensive, but it is where we get the value for t
 
 ### **Methods:**
 
-**Natural Language Inference (NLI):**
+#### **Natural Language Inference (NLI):**
 
 The natural language inference approach is used widely in fact verification. Given a fact and a bunch of reference text, can we find one reference that confirms or refutes the fact?
 
@@ -113,7 +113,7 @@ Models used in the industry:
 - And the following model was used to compute the scores, it is [Bert Model fine tuned on NLI task.](https://huggingface.co/tals/albert-xlarge-vitaminc-mnli)
     
 
-**RAGAS Method:**
+#### **RAGAS Method:**
 
 In the [RAGAS framework](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/), a response is considered **faithful** if all its claims can be supported by the retrieved context.
 
@@ -130,7 +130,7 @@ Example: If the answer states "Halifax offers 2-year and 5-year fixed mortgages,
   2. "Halifax offers 5-year fixed mortgages"
   Each claim is then verified against the retrieved context.
 
-**LLM As a Judge:**
+#### **LLM As a Judge:**
 
 This is a straightforward approach where we just prompt the LLM to check if the answer is grounded in any of the context.
 
@@ -164,7 +164,7 @@ EDGE CASES:
 - If answer includes common knowledge not in context, focus on whether it contradicts the context
 ```
 
-## Limitations of this method
+### Limitations of this method
 
 The NLI methods are data science methods and all of them suffer from no‑free‑lunch theorems.
 
@@ -174,17 +174,17 @@ NLI models, on the other hand, while they are less prone to hallucinations due t
 
 After this step, any answer that has at least one claim that is not supported by the reference is sent to an agent and we continue to the next step with the answers that are fully supported by their contexts.
 
-# Answer Relevance Checks:
+## Answer Relevance Checks:
 
 This checks if the generated answer address the question. It measures how relevant a response is to the question, allowing us to find out if the generated answer is a direct response to the original query.
 
-## **Methods:**
+### **Methods:**
 
-### **Embedding Models**
+#### **Embedding Models**
 
 We can perform this by computing the embedding between the question and the answers. It is recommended to not use the same embedding model used for the retrieval to compute this cosine similarity.
 
-### RAGAS Methods:
+####  **RAGAS:**
 
 An answer is considered relevant if it directly and appropriately addresses the original question. This metric focuses on how well the answer matches the intent of the question, without evaluating factual accuracy. It penalizes answers that are incomplete or include unnecessary details.
 
@@ -207,7 +207,7 @@ Where:
 
 The underlying concept is that if the answer correctly addresses the question, it is highly probable that the original question can be reconstructed solely from the answer.
 
-**LLM as a judge:**
+#### **LLM as a judge:**
 
 For this method an LLM is prompted with the question and the answer and asked to return a number which indicates how relevant the answer is to the question.
 
