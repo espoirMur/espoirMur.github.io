@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(bundle exec jekyll build:*)",
+      "Bash(git pull:*)"
+    ]
+  }
+}
