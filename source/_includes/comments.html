@@ -11,8 +11,18 @@ This prevents Cusdis from appear everywhere-->
   data-page-id="{{ page.id }}"
   data-page-url="{{ site.url }}{{ page.baseurl }}{{ page.url }}"
   data-page-title="{{ page.title }}"
-  data-theme="dark"
+  data-theme="light"
 ></div>
 <script defer src="https://cusdis.com/js/cusdis.es.js"></script>
+<script>
+  // Sync Cusdis theme with site theme
+  document.addEventListener('DOMContentLoaded', function() {
+    const cusdis = document.getElementById('cusdis_thread');
+    if (cusdis) {
+      const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      cusdis.setAttribute('data-theme', theme);
+    }
+  });
+</script>
 {%- endif -%}
 {% endif %}

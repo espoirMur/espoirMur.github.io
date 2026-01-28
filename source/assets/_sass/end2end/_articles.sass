@@ -38,12 +38,12 @@
       @extend .card
 
       a
-        color: $base-font-color
+        color: var(--text-color)
 
         &:hover,
         &:active,
         &:focus
-          color: $primary-color
+          color: var(--text-color)
 
 .post-list
   .post
@@ -75,3 +75,6 @@
     &-content
       +media($tablet-small)
         padding: 0 0 0 $base-spacing
+
+.post-content
+  color: var(--text-color)

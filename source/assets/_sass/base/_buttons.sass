@@ -6,10 +6,12 @@
 
   &-ghost
     background-color: transparent
-    border: 2px solid $primary-color
-    color: $primary-color
+    border: 2px solid var(--text-color)
+    color: var(--text-color)
     margin-bottom: 2px
+    transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease
 
     &:hover,
     &:focus
-      color: #fff
+      background-color: var(--text-color)
+      color: var(--bg-color)

@@ -1,9 +1,11 @@
 blockquote
-  background: #181824
-  border-left: 10px solid #ccc
+  background: var(--bg-secondary)
+  border-left: 10px solid var(--border-color)
   margin: 1.5em 10px
   padding: 0.5em 10px
-  quotes: "“" "”" "‘" "’"
+  quotes: """ """ "'" "'"
+  font-style: italic
+  transition: background-color 0.3s ease, border-color 0.3s ease
   
 blockquote p
   display: inline
