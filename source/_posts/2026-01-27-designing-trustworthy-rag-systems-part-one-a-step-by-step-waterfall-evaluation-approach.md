@@ -5,7 +5,7 @@ permalink: designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-e
 date: 2026-01-27 14:59:47
 comments: true
 description: "Learn how to evaluate RAG systems in production using a waterfall framework with retrieval checks, faithfulness validation, and relevance scoring. Includes practical methods like NLI, RAGAS, and LLM-as-judge."
-keywords: "RAG evaluation, RAG pipeline evaluation, hallucination detection, faithfulness check, NLI for RAG, production RAG systems"
+keywords: "RAG evaluation, hallucination detection, faithfulness check, NLI for RAG, production RAG systems, how to evaluate RAG without ground truth, detecting hallucinations in RAG systems,production RAG evaluation pipeline, evaluate LLM generated answers "
 categories:
 
 tags:
