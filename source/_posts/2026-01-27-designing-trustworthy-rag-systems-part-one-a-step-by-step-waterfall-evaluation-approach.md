@@ -11,7 +11,7 @@ categories:
 tags:
 
 published: true
-is_draft: true
+is_draft: false
 ---
 
 {% include image.html name="scale-main-image.png" caption="Main Image" %}
