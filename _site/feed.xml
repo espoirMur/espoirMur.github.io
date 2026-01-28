@@ -5,9 +5,295 @@
     <description>Murhabazi Buzina Espoir Home on the internet</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 10 Dec 2025 11:11:42 +0000</pubDate>
-    <lastBuildDate>Wed, 10 Dec 2025 11:11:42 +0000</lastBuildDate>
+    <pubDate>Wed, 28 Jan 2026 15:33:35 +0000</pubDate>
+    <lastBuildDate>Wed, 28 Jan 2026 15:33:35 +0000</lastBuildDate>
     <generator>Jekyll v4.2.2</generator>
+    
+      <item>
+        <title>Designing Trustworthy RAG Systems. Part One: A Step By Step Waterfall Evaluation Approach</title>
+        <description>
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2026-01-27-designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach/scale-main-image.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Main Image&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;You have written that RAG pipeline, you have chunked, you have ingested the document in your favorite vector database using your best embedding model, and you have retrieved and generated an answer using your LLM. &lt;em&gt;How do you know that you are sending the correct answer to your users and your RAG system is really bringing value to them?&lt;/em&gt; If you have been building RAG systems, that question is familiar to you. In this post we will try to answer that question by summarizing a few tips we learned last year while building the AIM project.&lt;/p&gt;
+
+&lt;p&gt;AIM stands for AI for Mortgages Intermediaries. It is a RAG solution built on top of the &lt;a href=&quot;https://www.halifax-intermediaries.co.uk/&quot;&gt;halifax-intermediairies website&lt;/a&gt; and mortgages product documentation contained in pdf documents.&lt;/p&gt;
+
+&lt;p&gt;The aim of the project is to give mortgage brokers or intermediaries correct answers to their questions and therefore reduce the manual workload of the customer services agents. Those agents get on average 150k questions per year.&lt;/p&gt;
+
+&lt;p&gt;We have gotten to a stage where we had a RAG prototype which was answering the questions, but we need to be able to evaluate how good our answers are live in a production setting &lt;em&gt;&lt;strong&gt;where we don’t have the correct answer to compare the generated answer to.&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;After many trials and research on how this is done in the industry, we came up with a waterfall pipeline that is designed to be safe and flag correct answers which are hallucination‑free.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;This pipeline is designed to fail safely and to abstain under uncertainty&lt;/strong&gt;&lt;/em&gt;. It’s better to route too many questions to the agent than to send one incorrect, high‑confidence hallucination.&lt;/p&gt;
+
+&lt;p&gt;This post will be divided in two parts: the first part will talk about the pipeline or waterfall framework and explain its various components and how those components are implemented. The second part will take you through the results we got with the framework by running it on a set of test questions.&lt;/p&gt;
+
+&lt;h1 id=&quot;evaluation-pipeline-waterfall-framework&quot;&gt;Evaluation Pipeline: Waterfall Framework.&lt;/h1&gt;
+
+&lt;p&gt;Here’s what the pipeline looks like:&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2026-01-27-designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach/rag-waterfall-pipeline.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Recommended RAG Waterfall Pipeline&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;This post assumes that you are familiar with RAG and how it works. If that is not the case, I will recommend you to &lt;a href=&quot;https://www.youtube.com/playlist?list=PLnH2pfPCPZsJ1qBbf0Fb7onButMjqYa-Z&quot;&gt;watch these videos&lt;/a&gt; they explains RAG in detail.&lt;/p&gt;
+
+&lt;h1 id=&quot;layer-one--pre-generation-retrieval-checks&quot;&gt;Layer One : Pre-Generation (Retrieval Checks)&lt;/h1&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2026-01-27-designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach/retrieval-step.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Retrieval Step&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h2 id=&quot;retrieval-check&quot;&gt;Retrieval Check&lt;/h2&gt;
+
+&lt;p&gt;To answer a question, we compute its embedding vectors and then retrieve the references or chunks from the database using the cosine similarity between the question embeddings and the chunks embeddings.&lt;/p&gt;
+
+&lt;p&gt;The cosine similarity is a signal to tell if a chunk contains the answer to the question. A higher cosine similarity between the chunk and the question shows us that the chunk can contain the answer to the question, a lower cosine similarity shows that the chunk is not related to the question. In this step we retrieve the top K (k = 10) chunks sorted by cosine similarity.&lt;/p&gt;
+
+&lt;p&gt;This step checks cosine similarity between the highest‑ranked retrieved chunks and the question; if the similarity is lower than a threshold, that is a signal that we don’t have a chunk that contains the answer to the question. The threshold is a parameter of this system, it can be tuned. The chunking strategy we used, the embedding model we use, may affect the performance of this step.&lt;/p&gt;
+
+&lt;p&gt;Here is an example of the of the top 2 retrieved questions sorted by the cosine similarity for the following question &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;Can you guys &lt;span class=&quot;k&quot;&gt;do &lt;/span&gt;day 1 remo?&lt;/code&gt;:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;content&lt;/th&gt;
+      &lt;th style=&quot;text-align: right&quot;&gt;cosine_similarity&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Porting Applications: To port a product the new mortgage application must complete simultaneously with redemption of the current mortgage. The conveyancer must indicate a product is being ported when they obtain a redemption statement for the existing mortgage; the statement will then explain that the ERC does not need to be included in the redemption monies.&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0.389781&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;Remortgaging with us - Welcome Call: It is important you advise the customer who the allocated conveyancer is and that they will receive a welcome call from them when the conveyancer will: Introduce themselves and explain they have been appointed to act as conveyancer on behalf of the bank. Provide an outline of next steps, including completion of the remortgage questionnaire and signature of the mortgage deed. Establish customers preferred method of communication throughout the remortgage transaction and encourage use of the conveyancing firm’s online customer portal. Discuss any potential complexities identified from the Land Registry (which they will have reviewed before the call) and set expectations around estimated timescales for completion. Notify the customer of the costs of any additional services payable by the customer. Answer any initial questions that the customer may have.&lt;/td&gt;
+      &lt;td style=&quot;text-align: right&quot;&gt;0.389161&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;The question uses informal language (‘you guys’, ‘remo’) and the retrieved chunks, while mentioning remortgaging, don’t specifically address ‘day 1’ remortgages, resulting in low similarity scores&lt;/p&gt;
+
+&lt;p&gt;Note that these cosine similarity values of ~0.39 are relatively low (values closer to 1 indicate higher similarity), suggesting poor retrieval quality for this informal question&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Alternatively, for this step if you have access to a re-ranker model, you can use a re-ranker model to compute the similarity between the questions and the retrieved chunked and use the re-ranker score to filter out the questions for which we don’t have similar chunks.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;At the end of this step we are only dealing with questions for which we are sure that we have the chunks that can answer them.&lt;/p&gt;
+
+&lt;h2 id=&quot;answerability-check&quot;&gt;&lt;strong&gt;Answerability Check&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;Given the question and the set of chunks or reference text, we need to find out if, &lt;strong&gt;based only on the following reference texts, it is possible to answer the question&lt;/strong&gt;. This is a binary Yes/No task. If “No”, route to agent. This separates retrieval failure from generation failure.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Methods:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;This check can be implemented by using two different approaches:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The first one is to train a small, cheap classifier that can answer that question and output the binary response.&lt;/li&gt;
+  &lt;li&gt;The second one is to prompt an LLM and give it the question and the reference texts and ask it if, based only on the references, it &lt;strong&gt;is&lt;/strong&gt; possible to answer the question. We used conditional generation and asked the model to return a binary response.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This metric can also serve as a proxy to the recall metrics commonly used in information retrieval where you have the golden reference chunk to a question.&lt;/p&gt;
+
+&lt;p&gt;With the remaining questions and the chunks we can now prompt our LLM to generate the answer to the question.&lt;/p&gt;
+
+&lt;h1 id=&quot;layer-two-post-generation-rich-checks&quot;&gt;Layer Two: Post-Generation: Rich Checks&lt;/h1&gt;
+
+&lt;p&gt;This is where we evaluate the actual generated answer.&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;p&gt;&lt;img src=&quot;/assets/posts/2026-01-27-designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach/post-generation-checks.png&quot; /&gt;&lt;/p&gt;
+  &lt;figcaption&gt;Main Image&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h2 id=&quot;faithfulness-check&quot;&gt;Faithfulness Check&lt;/h2&gt;
+
+&lt;p&gt;Given the answer and the context used to generate it, the aim of this task is to find out if the answer is grounded in the context or supported by the context. This is the primary defence against hallucinations.&lt;/p&gt;
+
+&lt;p&gt;These types of checks are more expensive, but it is where we get the value for the system. Different methods are being developed in the industry to perform this type of task. Let’s highlight some of them:&lt;/p&gt;
+
+&lt;h3 id=&quot;methods&quot;&gt;&lt;strong&gt;Methods:&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Natural Language Inference (NLI):&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;The natural language inference approach is used widely in fact verification. Given a fact and a bunch of reference text, can we find one reference that confirms or refutes the fact?&lt;/p&gt;
+
+&lt;p&gt;That same approach has been used in RAG evaluation. Given an answer and the context, the task similar to the NLI one is to check if the context supports or contradicts the answer. When the context contradicts an answer, we can say that the answer has been hallucinated.&lt;/p&gt;
+
+&lt;p&gt;To check, we use a model, we give it an answer or a claim from the answer, and a reference chunk, and then we compute the probability of contradiction between the answer and reference chunks. If that probability is higher than a threshold, we conclude that the answer is hallucinated and not grounded in the references.&lt;/p&gt;
+
+&lt;p&gt;The model used to compute the probability of contradiction can be a cross‑encoder model or a classification model trained on this type of task.&lt;/p&gt;
+
+&lt;p&gt;Models used in the industry:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Currently Vectara have developed a model used based on the &lt;a href=&quot;https://huggingface.co/vectara/hallucination_evaluation_model&quot;&gt;T5 transformer architecture&lt;/a&gt;:&lt;/li&gt;
+  &lt;li&gt;And the following model was used to compute the scores, it is &lt;a href=&quot;https://huggingface.co/tals/albert-xlarge-vitaminc-mnli&quot;&gt;Bert Model fine tuned on NLI task.&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;RAGAS Method:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;In the &lt;a href=&quot;https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/&quot;&gt;RAGAS framework&lt;/a&gt;, a response is considered &lt;strong&gt;faithful&lt;/strong&gt; if all its claims can be supported by the retrieved context.&lt;/p&gt;
+
+&lt;p&gt;To calculate this:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;We use an LLM to identify all the claims in the response.&lt;/li&gt;
+  &lt;li&gt;Check each claim to see if it can be inferred from the retrieved context. This can be performed using an LLM or NLI method with the claim and the reference.&lt;/li&gt;
+  &lt;li&gt;Compute the faithfulness score using the formula:&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Example: If the answer states “Halifax offers 2-year and 5-year fixed mortgages,” 
+  the LLM would extract two claims:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;“Halifax offers 2-year fixed mortgages”&lt;/li&gt;
+  &lt;li&gt;“Halifax offers 5-year fixed mortgages”
+  Each claim is then verified against the retrieved context.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;LLM As a Judge:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;This is a straightforward approach where we just prompt the LLM to check if the answer is grounded in any of the context.&lt;/p&gt;
+
+&lt;p&gt;With this approach use the following prompt:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;You are a faithfulness evaluator assessing how truthful a response is to the provided context information.
+
+TASK: Evaluate how faithfully the given answer represents information &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;the context without hallucination.
+
+INPUTS:
+Question: &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;question&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+Context: &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;context_text&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+Answer: &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;answer&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+EVALUATION CRITERIA &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;equally weighted&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;:
+1. Factual Alignment: Does the answer only contain facts present &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;the context?
+2. Completeness: Are all claims &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;the answer supported by the context?
+3. Precision: Does the answer avoid adding details or interpretations not &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;the context?
+
+SCORING GUIDE:
+- 1-2: Answer contains significant hallucinations or contradicts the context
+- 3-4: Answer contains some information not supported by the context
+- 5-6: Answer is mostly faithful but includes minor details not &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;the context
+- 7-8: Answer is faithful with very minimal unsupported information
+- 9-10: Answer is completely faithful with all statements directly supported by the context
+
+EDGE CASES:
+- If answer contains paraphrasing but maintains factual accuracy, consider it faithful
+- If context is ambiguous, be more lenient on faithful interpretation
+- If answer includes common knowledge not &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;context, focus on whether it contradicts the context
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;limitations-of-this-method&quot;&gt;Limitations of this method&lt;/h2&gt;
+
+&lt;p&gt;The NLI methods are data science methods and all of them suffer from no‑free‑lunch theorems.&lt;/p&gt;
+
+&lt;p&gt;LLM as a judge are &lt;strong&gt;autoregressive generative models&lt;/strong&gt; by nature; they cannot generate consistent responses between runs and are also prone to hallucination, we need to be careful in the choice of model we are picking here. One thing is to avoid using the same model for generation and evaluation.&lt;/p&gt;
+
+&lt;p&gt;NLI models, on the other hand, while they are less prone to hallucinations due to the fact that they are &lt;strong&gt;auto‑encoding models&lt;/strong&gt;, are consistent with their output but sometimes lack domain knowledge due to the fact that they may not have been trained on the domains we are working with. It is recommended to fine‑tune a model on your own domain and use it for evaluation.&lt;/p&gt;
+
+&lt;p&gt;After this step, any answer that has at least one claim that is not supported by the reference is sent to an agent and we continue to the next step with the answers that are fully supported by their contexts.&lt;/p&gt;
+
+&lt;h1 id=&quot;answer-relevance-checks&quot;&gt;Answer Relevance Checks:&lt;/h1&gt;
+
+&lt;p&gt;This checks if the generated answer address the question. It measures how relevant a response is to the question, allowing us to find out if the generated answer is a direct response to the original query.&lt;/p&gt;
+
+&lt;h2 id=&quot;methods-1&quot;&gt;&lt;strong&gt;Methods:&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;h3 id=&quot;embedding-models&quot;&gt;&lt;strong&gt;Embedding Models&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;We can perform this by computing the embedding between the question and the answers. It is recommended to not use the same embedding model used for the retrieval to compute this cosine similarity.&lt;/p&gt;
+
+&lt;h3 id=&quot;ragas-methods&quot;&gt;RAGAS Methods:&lt;/h3&gt;
+
+&lt;p&gt;An answer is considered relevant if it directly and appropriately addresses the original question. This metric focuses on how well the answer matches the intent of the question, without evaluating factual accuracy. It penalizes answers that are incomplete or include unnecessary details.&lt;/p&gt;
+
+&lt;p&gt;This metric is calculated using the question and the response as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Generate a set of artificial questions (default is 3) based on the response. These questions are designed to reflect the content of the response.&lt;/li&gt;
+  &lt;li&gt;Compute the cosine similarity between the embedding of the question (Eo) and the embedding of each generated question (Egi).&lt;/li&gt;
+  &lt;li&gt;Take the average of these cosine similarity scores to get the Answer Relevancy:&lt;/li&gt;
+&lt;/ul&gt;
+
+\[Answer Relevancy = \frac{1}{N} \sum_{i=1}^{n} \text{cosine similarity}(E_{gi}, E_o)\]
+
+&lt;p&gt;If we expand the formula of the cosine similarity this is how it looks like:&lt;/p&gt;
+
+\[Answer Relevancy = \frac{1}{N} \sum_{i=1}^{n} \frac{E_{gi} E_o}{||E_{gi}|| ||E_{o}||}\]
+
+&lt;p&gt;Where:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;\(E_{gi}\): Embedding of the ith generated question.&lt;/li&gt;
+  &lt;li&gt;\(E_o\): Embedding of the user input.&lt;/li&gt;
+  &lt;li&gt;\(N\): Number of generated questions&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The underlying concept is that if the answer correctly addresses the question, it is highly probable that the original question can be reconstructed solely from the answer.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;LLM as a judge:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;For this method an LLM is prompted with the question and the answer and asked to return a number which indicates how relevant the answer is to the question.&lt;/p&gt;
+
+&lt;p&gt;This approach use the following prompt:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;You are an answer relevancy evaluator assessing how well answers address the original question.
+
+TASK: Evaluate how relevant the given answer is to the question, regardless of factual accuracy.
+
+INPUTS:
+Question: &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;question&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+Answer: &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;answer&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+EVALUATION CRITERIA &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;equally weighted&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;:
+1. Direct Addressing: Does the answer directly address what was asked?
+2. Topic Alignment: Is the information &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;the answer relevant to the question&lt;span class=&quot;s1&quot;&gt;'s topic?
+3. Focused Response: Does the answer avoid unnecessary tangents or irrelevant details?
+4. Completeness: Does the answer address all aspects of the question (if multi-part)?
+
+SCORING GUIDE:
+- 1-2: Answer is completely off-topic or doesn'&lt;/span&gt;t address the question at all
+- 3-4: Answer is tangentially related but misses the main point of the question
+- 5-6: Answer addresses the question but includes irrelevant information or misses parts
+- 7-8: Answer is mostly relevant with minor unrelated details or slight incompleteness
+- 9-10: Answer is perfectly relevant and directly addresses all aspects of the question
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;and output a score that show how the answer is relevant to the question.&lt;/p&gt;
+
+&lt;p&gt;This is the last step of our pipeline and at its end we will have an answer and this answer is finally sent to the user.&lt;/p&gt;
+
+&lt;p&gt;Choosing between methods depends on your constraints: NLI models offer consistency and speed, RAGAS provides detailed claim-level analysis, while LLM-as-judge excels at domain adaptability.&lt;/p&gt;
+
+&lt;p&gt;This post takes us through the process of evaluating a RAG pipeline, it illustrated a waterfall pipeline that can be used to evaluate the system and how each component of that pipeline can be implemented. The next post illustrates how those steps were implemented with a set of questions we got for our system and how we can quantify the business value of a RAG system. Stay tuned for it.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References:&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://huggingface.co/transformers/v3.1.0/model_summary.html[hashtag#autoregressive](https://www.linkedin.com/feed/hashtag/?keywords=autoregressive)-models&quot;&gt;Hugging Face Blog — Autoregressive and Autoencoding Models Overview&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://aclanthology.org/C08-1066.pdf&quot;&gt;C. Manning, B. MacCartney . Modeling Semantic Containment and Exclusionin Natural Language Inference&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.cs.upc.edu/~ageno/anlp/textualEntailment.pdf&quot;&gt;Ageno, A. Textual Entailment: Natural Language Inference Approaches.&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://milvus.io/ai-quick-reference/what-techniques-can-be-used-to-detect-hallucinations-in-a-raggenerated-answer-for-example-checking-if-all-factual-claims-have-support-in-the-retrieved-text&quot;&gt;Milvus Blog — Detecting Hallucinations in RAG-Generated Answers.&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://huggingface.co/vectara/hallucination_evaluation_model&quot;&gt;Vectara — Hallucination Evaluation Model (T5-Based Cross Encoder).&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://huggingface.co/tals/albert-xlarge-vitaminc-mnli&quot;&gt;Tals — ALBERT-XLarge VitaminC MNLI Model.&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://arxiv.org/abs/2111.09525&quot;&gt;Phillipe Laban et al. (2021). SummaC: Re-Visiting NLI-based Models for Factual Consistency Evaluation.&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://arxiv.org/html/2411.01022&quot;&gt;Tanner Sorensen. (2024). Provenance Approach for Hallucination Detection in RAG Systems.&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;em&gt;Disclaimer: This post describes general RAG evaluation methodologies  learned during a project. All views are my own and do not represent  my employer. No confidential or proprietary information is disclosed.&lt;/em&gt;&lt;/p&gt;
+</description>
+        <pubDate>Tue, 27 Jan 2026 14:59:47 +0000</pubDate>
+        <link>http://localhost:4000/designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach</link>
+        <guid isPermaLink="true">http://localhost:4000/designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach</guid>
+        
+        
+      </item>
     
       <item>
         <title>Natural Language Inference for Hallucination Detection in RAG Responses</title>
@@ -2301,349 +2587,6 @@ If you have any question or comment, please don’t hesitate to contact me.&lt;/
         <pubDate>Wed, 16 Oct 2024 13:53:10 +0100</pubDate>
         <link>http://localhost:4000/visit-kahuzi-biega</link>
         <guid isPermaLink="true">http://localhost:4000/visit-kahuzi-biega</guid>
-        
-        
-      </item>
-    
-      <item>
-        <title>Mounting Oracle Cloud Storage as Volume in Containers with Kubernetes.</title>
-        <description>
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2024-06-19-mounting-oracle-cloud-storage-as-volume-in-containers-with-kubernetes/containers-in-ship.png&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;Containers in Ship&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;p&gt;In my attempt to deploy a Machine Learning model with Kubernetes, I need to find a way to mount files hosted on Oracle Cloud Storage bucket to a docker container via Docker Volumes and later to Kubernetes using Kubernetes Volumes.&lt;/p&gt;
-
-&lt;p&gt;I looked up online and couldn’t find a post that fit my needs hence why I decided to write this guide to highlight my approach and learnings.&lt;/p&gt;
-
-&lt;p&gt;In this post, you will learn how to mount data in Oracle Cloud Storage or any other cloud object storage to a docker container and Kubernetes pods via Volumes. It is the second post of a series of posts that I am writing on deploying machine learning models on Kubernetes.  &lt;a href=&quot;https://www.murhabazi.com/deploying-language-model-with-onnx-runtime-on-triton-inference-server&quot;&gt;In the first post&lt;/a&gt;, we learned how to use the ONNX runtime, and the triton inference server to deploy our model as a docker container. However, in that post, we saw the need to use a model registry to save our model files.&lt;/p&gt;
-
-&lt;p&gt;You will best benefit from this post if you already have some Docker containers and Kubernetes components knowledge. As for the prerequisites,  I suggest that you have Docker and Kubernetes installed on your machine.  Additionally, you need access to a Kubernetes cluster either via Minikube (local access) or via a cloud provider. In my case, I am using Oracle Cloud.&lt;/p&gt;
-
-&lt;p&gt;I have used a cloud storage bucket as my model repository and hosted my machine learning model in it, making this post a more Machine Learning oriented one. Having said that, web developers can use the same approach illustrated in this post to share web static files such as CSS, and images.&lt;/p&gt;
-
-&lt;p&gt;Let start by defining what is the Object Storage.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-is-object-storage&quot;&gt;&lt;center&gt;What is Object Storage?&lt;/center&gt;&lt;/h2&gt;
-
-&lt;p&gt;An  Object Storage is a data storage architecture for storing unstructured data.It sections the data into units—objects and stores them in a structurally flat data environment. Each object includes the data, metadata, and a unique identifier that applications can use for easy access and retrieval. &lt;a href=&quot;https://cloud.google.com/learn/what-is-object-storage&quot;&gt;Source&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;With Object Storage, the data blocks of a file are kept together as objects, with a custom identifier and relevant metadata about them.
-This type of storage architecture is well suited for unstructured data such as video,  music, and email which is written once and read multiple times.&lt;/p&gt;
-
-&lt;p&gt;It is different from File Storage, where data is organized as files, and folders as files in real life. It is also different from Block Storage which is a performance improvement of file storage where files are broken into separate blocks and stored separately.&lt;/p&gt;
-
-&lt;p&gt;Many cloud storage providers have stores that implement object storage architecture. In that storage, files are saved in buckets. The most common type of object store is Amazon Simple Storage Service (S3). Then comes Google Cloud Storage(GCS). Oracle Cloud, the storage we will be using in this post is one of the other S3 and GCS alternatives. You can check other S3 alternatives &lt;a href=&quot;https://github.com/s3fs-fuse/s3fs-fuse/wiki/Non-Amazon-S3&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;That being said, we can confirm that everything you can do on Amazon S3 can be replicated on other cloud provider object storage.&lt;/p&gt;
-
-&lt;p&gt;Now that we know more about object storage , the next concept to grasp is Volumes.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-are-docker-and-kubernetes-volumes&quot;&gt;What are Docker and Kubernetes Volumes?&lt;/h2&gt;
-
-&lt;h3 id=&quot;docker-volumes&quot;&gt;Docker Volumes.&lt;/h3&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2024-06-19-mounting-oracle-cloud-storage-as-volume-in-containers-with-kubernetes/docker-volumes.png&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;Docker Volumes&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;p&gt;Docker containers are stateless components,  at the end of their lifecycle their contents are destroyed. All the data generated by a container and saved inside are deleted on its destruction. Volumes are handy when it comes to sharing data with a container, and to persisting data generated by a container. 
-The most common use cases of docker volumes that I can think of on top of my head in Web Development are :&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Sharing static files with web application&lt;/li&gt;
-  &lt;li&gt;Persisting data generated by a database container.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;In Machine Learning however, docker volumes mostly share model files with a deployment container, or sharing model training files with a training script.&lt;/p&gt;
-
-&lt;p&gt;You can read more about docker volumes &lt;a href=&quot;https://docs.docker.com/storage/volumes/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;kubernetes-volumes&quot;&gt;Kubernetes Volumes.&lt;/h3&gt;
-
-&lt;p&gt;Kubernetes volumes are similar to docker volumes. They can be seen as directory containing data accessible by multiple containers in a pod.
-On top of sharing data and persisting data with a pod, Kubernetes volumes help to share data between containers in the same pod.&lt;/p&gt;
-
-&lt;p&gt;Kubernetes offers different types of volumes, you can read more about them &lt;a href=&quot;https://kubernetes.io/docs/concepts/storage/volumes/&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;In this post, we will be interested in two types of them, the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;hostPath&lt;/code&gt; and &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;PersitantVolume&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;A &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;hostPath&lt;/code&gt; volume mounts a file or directory from the host node’s filesystem into your Pod. This type of volume is not recommended for production-grade applications because it presents many security risks. It is recommended to use &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;PersistantVolume&lt;/code&gt; and &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;PersistantVolumeClaim&lt;/code&gt; instead.&lt;/p&gt;
-
-&lt;p&gt;Enough theory, let us write code.&lt;/p&gt;
-
-&lt;h2 id=&quot;our-architecture&quot;&gt;Our Architecture.&lt;/h2&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2024-06-19-mounting-oracle-cloud-storage-as-volume-in-containers-with-kubernetes/architecture-diagram.png&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;Architecture Diagram.&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;p&gt;In the figure above, we have the architecture diagram of what we are we will be deploying in this post.&lt;/p&gt;
-
-&lt;p&gt;For our model container need to access models files, that are are in our registry.&lt;/p&gt;
-
-&lt;h2 id=&quot;mounting-object-storage-bucket-in-a-docker-container&quot;&gt;Mounting Object Storage Bucket in a docker container.&lt;/h2&gt;
-
-&lt;p&gt;We will be using the &lt;a href=&quot;https://github.com/s3fs-fuse/s3fs-fuse&quot;&gt;s3fs library&lt;/a&gt;, which is a tool that allows Unix/FreeBSD OS to mount object storage buckets via FUSE(Filesystem in UserSpace). It helps us to operate files and directories in an S3 bucket like a local file system.&lt;/p&gt;
-
-&lt;p&gt;You can install it in any Unix system and mount the bucket path to your local machine.&lt;/p&gt;
-
-&lt;p&gt;For our use case, we will install it and use it in a docker container.&lt;/p&gt;
-
-&lt;h3 id=&quot;first-step--create-the-script&quot;&gt;First Step : Create the Script.&lt;/h3&gt;
-
-&lt;p&gt;To mount our bucket we will use the following script, let name it &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;run.sh&lt;/code&gt;:&lt;/p&gt;
-
-&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$ACCESS_KEY_ID&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$ORACLE_CLOUD_SECRET&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; passwd &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chmod &lt;/span&gt;600 passwd
-
-&lt;span class=&quot;nv&quot;&gt;URL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;https://&lt;span class=&quot;nv&quot;&gt;$TENANT_ID&lt;/span&gt;.compat.objectstorage.&lt;span class=&quot;nv&quot;&gt;$REGION&lt;/span&gt;.oraclecloud.com
-
-s3fs &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$OCI_BUCKET&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MOUNT_POINT&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;endpoint&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$REGION&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;passwd_file&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;passwd &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$URL&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; nomultipart &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; use_path_request_style
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Our script expects the following environment variables to work.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;ACCESS_KEY_ID: &lt;/code&gt;: The access key ID&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;ORACLE_CLOUD_SECRET&lt;/code&gt;: The secret key
-Those two are credential pairs from Oracle Cloud. You can grab them from your profile on Oracle Cloud. In case you are using another cloud provider, refer to the documentation to grab those credentials.&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;TENANT_ID&lt;/code&gt;: Your Oracle Cloud tenant ID. is the unique identifier of your Oracle Cloud account.&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;REGION&lt;/code&gt;: The region where your bucket is located.
-With the tenant ID and the region, we can build the bucket format. Oracle cloud storage uses the following URL format: &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;span class=&quot;nv&quot;&gt;URL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;https://&lt;span class=&quot;nv&quot;&gt;$TENANT_ID&lt;/span&gt;.compat.objectstorage.&lt;span class=&quot;nv&quot;&gt;$REGION&lt;/span&gt;.oraclecloud.com&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;If you are using a different cloud provider than S3 or OracleCloud, check out &lt;a href=&quot;https://github.com/s3fs-fuse/s3fs-fuse/wiki/Non-Amazon-S3&quot;&gt;this guide&lt;/a&gt;, it illustrates how to define the URL to access the content of your bucket. 
-You can also check the respective cloud provider documentation.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;OCI_BUCKET&lt;/code&gt;: Is the bucket name&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;MOUNT_POINT&lt;/code&gt;: This is the path where we are mounting our files in the container.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The command creates a file called &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;passwd&lt;/code&gt; and they put the credentials inside it. Then they change the permission of the file. Permission 600 means read and write from the owner and no other permission from the group and others.&lt;/p&gt;
-
-&lt;p&gt;The main command  &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;s3fs&lt;/code&gt; mounts the bucket to the mount point. 
-The flags &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt;&lt;/code&gt; and &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt;&lt;/code&gt; are for debugging purposes.&lt;/p&gt;
-
-&lt;p&gt;Let us create a docker container that uses that script.&lt;/p&gt;
-
-&lt;h3 id=&quot;second-step--build-the-container-image&quot;&gt;Second Step : Build the container image.&lt;/h3&gt;
-
-&lt;p&gt;Let us create the docker image using the following DockerFile:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;FROM anujkosambi/s3fs-fuse
-
-ENV MOUNT_POINT /var/s3
-RUN &lt;span class=&quot;nb&quot;&gt;mkdir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MOUNT_POINT&lt;/span&gt;
-COPY run.sh run.sh
-RUN &lt;span class=&quot;nb&quot;&gt;chmod&lt;/span&gt; +x run.sh
-CMD ./run.sh
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The docker container pulls from the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;s3fs-fuse&lt;/code&gt; image and copies the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;run.sh script&lt;/code&gt;, changes it permission to be executable, and then executes the script.&lt;/p&gt;
-
-&lt;p&gt;If you have the docker file saved as &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;DockerFile&lt;/code&gt; and your &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;run&lt;/code&gt; script saved as &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;run.sh&lt;/code&gt; at the same location you can build your container using:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;docker build &lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt; espymur/s3fs:latest &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; DockerFile &lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt; &lt;/code&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;h3 id=&quot;third-step-starting-the-docker-container&quot;&gt;Third Step: Starting the docker container.&lt;/h3&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;In order run the container you need the values of your environment variables. Go to your cloud console and collect the environment variables. Then run the following command:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;docker run  &lt;span class=&quot;nt&quot;&gt;--privileged&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;ORACLE_CLOUD_SECRET&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;your_secret &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;OCI_BUCKET&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;bucket_name  &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;REGION&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;your-region &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;TENANT_ID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;your_tenant-id &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;ACCESS_KEY_ID&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;acces_key_id espymur/s3fs:latest&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;Note the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;span class=&quot;nt&quot;&gt;--privileged&lt;/span&gt;&lt;/code&gt; mode. It permits the docker container to write to the container host. You can read more about it &lt;a href=&quot;https://stackoverflow.com/questions/75296630/what-does-the-docker-exec-privileged-flag-do&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;If everything is fine you should be able to exec a command in your container like this to check if the data in your bucket are there.&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;docker &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-it&lt;/span&gt; container_id &lt;span class=&quot;nb&quot;&gt;ls&lt;/span&gt; /var/s3&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;The command should put the content of your bucket.&lt;/p&gt;
-
-&lt;p&gt;Now we can mount the bucket content in our docker container, let us see how to use that in a Kubernetes environment.&lt;/p&gt;
-
-&lt;p&gt;With we have achieved what we can see in the following image:&lt;/p&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2024-06-19-mounting-oracle-cloud-storage-as-volume-in-containers-with-kubernetes/storage-container.png&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;S3 storage mounted inside a docker container&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;h2 id=&quot;then-comes-kubernetes&quot;&gt;Then comes Kubernetes.&lt;/h2&gt;
-
-&lt;p&gt;Now that the bucket mounts as in your docker container, let’s see how it would work in practice with Kubernetes.&lt;/p&gt;
-
-&lt;p&gt;Our end goal is to deploy a Machine Learning model in a Kubernetes cluster. The bucket will act as our model repository, and It will host our Machine Learning model.&lt;/p&gt;
-
-&lt;p&gt;The first component we will create is a &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;Secret&lt;/code&gt;, then we will create a &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;DaemontSet&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h3 id=&quot;kubernetes-secrets&quot;&gt;Kubernetes Secrets.&lt;/h3&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;A Secret is an object that contains a small amount of sensitive data such as a password, a token, or a key. Such information might otherwise be put in a &lt;a href=&quot;https://kubernetes.io/docs/concepts/workloads/pods/&quot;&gt;Pod&lt;/a&gt; specification or in a &lt;a href=&quot;https://kubernetes.io/docs/reference/glossary/?all=true#term-image&quot;&gt;container image&lt;/a&gt;. Using a Secret means that you don’t need to include confidential data in your application code.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;For our usecase our secret are the Oracle cloud credentials. Please note that kubernetes secret should not be shared with git. We need to add the it path to &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;.gitignore&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;Here is how we will defines our kubernetes secrets:&lt;/p&gt;
-
-&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;v1&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Secret&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;oracle-cloud-credentials&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Opaque&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;ORACLE_CLOUD_SECRET&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;secrets&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;hashed&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;base64=&quot;&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;OCI_BUCKET&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Your&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;hashed&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;base64=&quot;&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;REGION &lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;region&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;hashed&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;base64=&quot;&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;TENANT_ID&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;tenant&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;hashed&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;base64&quot;&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;ACCESS_KEY_ID&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;access&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;hashed&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;in&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;base64&quot;&lt;/span&gt;
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;Note that the values in our secrets are the real values of our secrets hashed in base64. Using the following command.&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'oursecret'&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;base64&lt;/span&gt;&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;We create the secrets with &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl apply &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; secret.yaml&lt;/code&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;daemonset-component&quot;&gt;DaemonSet Component.&lt;/h3&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;A &lt;em&gt;DaemonSet&lt;/em&gt; ensures that all (or some) Nodes run a copy of a Pod. As nodes are added to the cluster, Pods are added to them. As nodes are removed from the cluster, those Pods are garbage collected. Deleting a DaemonSet will clean up the Pods it created.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;A DaemonSet is the perfect component for our use case, we want to mount our bucket in all the nodes of our Kubernetes cluster in order to make the storage available to all pods that are running on the node.&lt;/p&gt;
-
-&lt;p&gt;The DaemontSet will help us to achieve what we can view on this picture:&lt;/p&gt;
-
-&lt;figure&gt;
-  &lt;p&gt;&lt;img src=&quot;/assets/posts/2024-06-19-mounting-oracle-cloud-storage-as-volume-in-containers-with-kubernetes/daemonset.png&quot; /&gt;&lt;/p&gt;
-  &lt;figcaption&gt;What our DaemontSet Achieve&lt;/figcaption&gt;
-&lt;/figure&gt;
-
-&lt;p&gt;I came across this component type when I was researching this tutorial.&lt;/p&gt;
-
-&lt;p&gt;Here is how we create the DaemonSet:&lt;/p&gt;
-
-&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;apiVersion&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;apps/v1&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;kind&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;DaemonSet&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;k8s-app&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;oracle-cloud-provider&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;oracle-cloud-provider&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;selector&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;matchLabels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;oracle-cloud-provider&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;template&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;metadata&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;na&quot;&gt;labels&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;oracle-cloud-provider&lt;/span&gt;
-    &lt;span class=&quot;na&quot;&gt;spec&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;na&quot;&gt;containers&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;oracle-cloud-fuse&lt;/span&gt;
-          &lt;span class=&quot;na&quot;&gt;image&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;s&quot;&gt;uk-london-1.ocir.io/lrtfqsmony6u/s3fs:latest&lt;/span&gt;
-          &lt;span class=&quot;na&quot;&gt;imagePullPolicy&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;Always&lt;/span&gt;
-          &lt;span class=&quot;na&quot;&gt;securityContext&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-            &lt;span class=&quot;na&quot;&gt;privileged&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;true&lt;/span&gt;
-          &lt;span class=&quot;na&quot;&gt;envFrom&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-            &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;secretRef&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-                &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;oracle-cloud-credentials&lt;/span&gt;
-          &lt;span class=&quot;na&quot;&gt;volumeMounts&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-            &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;devfuse&lt;/span&gt;
-              &lt;span class=&quot;na&quot;&gt;mountPath&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/dev/fuse&lt;/span&gt;
-            &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;oracle-cloud-fs&lt;/span&gt;
-              &lt;span class=&quot;na&quot;&gt;mountPath&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/var/s3&lt;/span&gt;
-              &lt;span class=&quot;na&quot;&gt;mountPropagation&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;Bidirectional&quot;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# this was the key to make it work.&lt;/span&gt;
-      &lt;span class=&quot;na&quot;&gt;volumes&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;devfuse&lt;/span&gt;
-          &lt;span class=&quot;na&quot;&gt;hostPath&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-            &lt;span class=&quot;na&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/dev/fuse&lt;/span&gt;
-        &lt;span class=&quot;pi&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;oracle-cloud-fs&lt;/span&gt;
-          &lt;span class=&quot;na&quot;&gt;hostPath&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-            &lt;span class=&quot;na&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;/tmp/s3&lt;/span&gt;
-
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;As you can see the Daemonset syntax is familiar to the Deployment syntax, they both define pods and volumes.&lt;/p&gt;
-
-&lt;p&gt;This Daemonset defines the container, this is the container we defined previously and it runs the s3fs code that mounts the bucket. You can check, we are running it with SecurityContext &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;privileged&lt;/code&gt; which is the equivalent of the docker mode &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;span class=&quot;nt&quot;&gt;--privileged&lt;/span&gt;&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;The &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;VolumeMounts&lt;/code&gt; argument defines the original path of the content  (files ) we want to mount in &lt;strong&gt;our container&lt;/strong&gt;.&lt;br /&gt;
-The &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;Volume&lt;/code&gt; definition, on the other hand, defines the volume mount path in the host system, for this case our Kubernetes nodes.&lt;/p&gt;
-
-&lt;p&gt;This means that the content of the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;/var/s3&lt;/code&gt; folder in our container will be mounted to the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;/tmp/s3&lt;/code&gt; folder in our docker container. The hostPath argument needs to be a writeable folder in our docker container.&lt;/p&gt;
-
-&lt;p&gt;The &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;mount propagation&lt;/code&gt; argument is important to make the mapping work, I spent hours trying to figure out this parameter to make my mount work.&lt;/p&gt;
-
-&lt;p&gt;From the &lt;a href=&quot;https://kubernetes.io/docs/concepts/storage/volumes/#mount-propagation&quot;&gt;Kubernetes documentation&lt;/a&gt; we can read that:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;HostToContainer&lt;/code&gt; - This volume mount will receive all subsequent mounts that are mounted to this volume or any of its subdirectories.&lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;In other words, if the host mounts anything inside the volume mount, the container will see it mounted there.&lt;/p&gt;
-
-    &lt;p&gt;Similarly, if any Pod with &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;Bidirectional&lt;/code&gt; mount propagation to the same volume mounts anything there, the container with &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;HostToContainer&lt;/code&gt; mount propagation will see it.&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;Bidirectional&lt;/code&gt; - This volume mount behaves the same the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;HostToContainer&lt;/code&gt; mount. In addition, all volume mounts created by the container will be propagated back to the host and to all containers of all pods that use the same volume.&lt;/p&gt;
-
-    &lt;p&gt;#### Warning:&lt;/p&gt;
-
-    &lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;Bidirectional&lt;/code&gt; mount propagation can be dangerous. It can damage the host operating system and therefore it is allowed only in privileged containers. Familiarity with Linux kernel behavior is strongly recommended. In addition, any volume mounts created by containers in pods must be destroyed (unmounted) by the containers on termination.&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;PS: I had some issues dealing with the container termination. If the Dameonset is not terminated properly the volume path will not work in the subsequent run. You have to change the path when you run it again to make it work.
-We will create our Daemonset with&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl apply &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; daemonset.yaml&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;The Daemonset will create a pod in each node of our cluster, you can check the pods with&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;kubectl get pods&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;You will see the pod running.&lt;/p&gt;
-
-&lt;p&gt;To check if the mount is working, you can ssh into your nodes and list the content of &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;/tmp/s3&lt;/code&gt;. Should everything works correctly, you should be able to see the content of the bucket.&lt;/p&gt;
-
-&lt;p&gt;If not check the logs our your pod to see what went wrong.&lt;/p&gt;
-
-&lt;p&gt;To ssh nodes in the cluster, you can use this &lt;a href=&quot;https://github.com/luksa/kubectl-plugins&quot;&gt;kubernetes plugin&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;If the Daemonset is working, go to the next step which is using it with the deployment to deploy models.&lt;/p&gt;
-
-&lt;p&gt;I have read that using a docker container with &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;privileged &lt;/code&gt; mode offers security risk and may not be advised in a high-security environment. If that is your use case you can try to use Persisent Volume to achieve the same results.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;To summarise, this posts has shown us how to mount the content of Object Storage like S3 in docker volume.  We leverage the &lt;code class=&quot;language-bash highlighter-rouge&quot;&gt;s3fs&lt;/code&gt; library and we mounted the strorage inside container. Finally, we used a Daemonset pod to share the content of our container with the nodes in our Kubernetes cluster.&lt;/p&gt;
-
-&lt;p&gt;To know how this is done, go ahead and read part 3 of these series of posts where I will show how to deploy Machine Learning model using the created volume.&lt;/p&gt;
-
-&lt;p&gt;In the next post, we will learn how to use that volume in a Machine Learning application.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://dev.to/otomato_io/mount-s3-objects-to-kubernetes-pods-12f5&quot;&gt;Mount S3 Objects to Kubernetes Pods.&lt;/a&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;&lt;a href=&quot;https://blog.meain.io/2020/mounting-s3-bucket-kube/&quot;&gt;Mounting S3 bucket in docker containers on kubernetes.&lt;/a&gt;&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-</description>
-        <pubDate>Wed, 19 Jun 2024 14:20:27 +0100</pubDate>
-        <link>http://localhost:4000/mounting-oracle-cloud-storage-as-volume-in-containers-with-kubernetes</link>
-        <guid isPermaLink="true">http://localhost:4000/mounting-oracle-cloud-storage-as-volume-in-containers-with-kubernetes</guid>
         
         
       </item>

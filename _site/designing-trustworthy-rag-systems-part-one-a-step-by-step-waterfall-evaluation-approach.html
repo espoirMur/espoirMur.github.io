@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+  
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="canonical" href="http://localhost:4000/designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach">
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CJV32Y553Z"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-CJV32Y553Z');
+</script>
+
+
+  <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Designing Trustworthy RAG Systems. Part One: A Step By Step Waterfall Evaluation Approach | Espoir Murhabazi ideas’ home</title>
+<meta name="generator" content="Jekyll v4.2.2" />
+<meta property="og:title" content="Designing Trustworthy RAG Systems. Part One: A Step By Step Waterfall Evaluation Approach" />
+<meta name="author" content="Murhabazi Buzina Espoir" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Designing Trustworthy RAG Systems. Part One: A Step-By-Step Waterfall Evaluation Approach" />
+<meta property="og:description" content="Designing Trustworthy RAG Systems. Part One: A Step-By-Step Waterfall Evaluation Approach" />
+<link rel="canonical" href="http://localhost:4000/designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach" />
+<meta property="og:url" content="http://localhost:4000/designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach" />
+<meta property="og:site_name" content="Espoir Murhabazi ideas’ home" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-01-27T14:59:47+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Designing Trustworthy RAG Systems. Part One: A Step By Step Waterfall Evaluation Approach" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Murhabazi Buzina Espoir"},"dateModified":"2026-01-27T14:59:47+00:00","datePublished":"2026-01-27T14:59:47+00:00","description":"Designing Trustworthy RAG Systems. Part One: A Step-By-Step Waterfall Evaluation Approach","headline":"Designing Trustworthy RAG Systems. Part One: A Step By Step Waterfall Evaluation Approach","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach"},"url":"http://localhost:4000/designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+<body>
+  <header class="site-header">
+  <div class="container">
+    <input type="checkbox" id="toggleNavbar">
+    <h1 class="logo"><a href="/">esp<span>.py</span></a></h1>
+    <label for="toggleNavbar" role="button" class="toggle-navbar-button">
+      <i class="icon icon-menu"></i>
+      <i class="icon icon-cross"></i>
+    </label>
+    <nav class="navbar">
+      <ul>
+        <li><a href="/" title="Home">127.0.0.1</a></li>
+        
+          <li><a href="/about" title="whoami();">whoami();</a></li>
+        
+          <li><a href="/blog" title="read();">read();</a></li>
+        
+          <li><a href="/schedule" title="schedule();">schedule();</a></li>
+        
+          <li><a href="/drafts" title="drafts();">drafts();</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</header>
+
+
+<main class="main-container">
+  <div class="container">
+    <article role="article" class="post">
+
+  <div class="card">
+    <header class="post-header">
+      <h1 class="post-title">Designing Trustworthy RAG Systems. Part One: A Step By Step Waterfall Evaluation Approach</h1>
+      <em class="post-meta">
+        <time>Jan 27, 2026</time>
+      </em>
+    </header>
+
+    <div class="post-content">
+      
+      
+<figure>
+  <p><img src="/assets/posts/2026-01-27-designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach/scale-main-image.png" /></p>
+  <figcaption>Main Image</figcaption>
+</figure>
+
+<p>You have written that RAG pipeline, you have chunked, you have ingested the document in your favorite vector database using your best embedding model, and you have retrieved and generated an answer using your LLM. <em>How do you know that you are sending the correct answer to your users and your RAG system is really bringing value to them?</em> If you have been building RAG systems, that question is familiar to you. In this post we will try to answer that question by summarizing a few tips we learned last year while building the AIM project.</p>
+
+<p>AIM stands for AI for Mortgages Intermediaries. It is a RAG solution built on top of the <a href="https://www.halifax-intermediaries.co.uk/">halifax-intermediairies website</a> and mortgages product documentation contained in pdf documents.</p>
+
+<p>The aim of the project is to give mortgage brokers or intermediaries correct answers to their questions and therefore reduce the manual workload of the customer services agents. Those agents get on average 150k questions per year.</p>
+
+<p>We have gotten to a stage where we had a RAG prototype which was answering the questions, but we need to be able to evaluate how good our answers are live in a production setting <em><strong>where we don’t have the correct answer to compare the generated answer to.</strong></em></p>
+
+<p>After many trials and research on how this is done in the industry, we came up with a waterfall pipeline that is designed to be safe and flag correct answers which are hallucination‑free.</p>
+
+<p><em><strong>This pipeline is designed to fail safely and to abstain under uncertainty</strong></em>. It’s better to route too many questions to the agent than to send one incorrect, high‑confidence hallucination.</p>
+
+<p>This post will be divided in two parts: the first part will talk about the pipeline or waterfall framework and explain its various components and how those components are implemented. The second part will take you through the results we got with the framework by running it on a set of test questions.</p>
+
+<h1 id="evaluation-pipeline-waterfall-framework">Evaluation Pipeline: Waterfall Framework.</h1>
+
+<p>Here’s what the pipeline looks like:</p>
+
+<figure>
+  <p><img src="/assets/posts/2026-01-27-designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach/rag-waterfall-pipeline.png" /></p>
+  <figcaption>Recommended RAG Waterfall Pipeline</figcaption>
+</figure>
+
+<p>This post assumes that you are familiar with RAG and how it works. If that is not the case, I will recommend you to <a href="https://www.youtube.com/playlist?list=PLnH2pfPCPZsJ1qBbf0Fb7onButMjqYa-Z">watch these videos</a> they explains RAG in detail.</p>
+
+<h1 id="layer-one--pre-generation-retrieval-checks">Layer One : Pre-Generation (Retrieval Checks)</h1>
+
+<figure>
+  <p><img src="/assets/posts/2026-01-27-designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach/retrieval-step.png" /></p>
+  <figcaption>Retrieval Step</figcaption>
+</figure>
+
+<h2 id="retrieval-check">Retrieval Check</h2>
+
+<p>To answer a question, we compute its embedding vectors and then retrieve the references or chunks from the database using the cosine similarity between the question embeddings and the chunks embeddings.</p>
+
+<p>The cosine similarity is a signal to tell if a chunk contains the answer to the question. A higher cosine similarity between the chunk and the question shows us that the chunk can contain the answer to the question, a lower cosine similarity shows that the chunk is not related to the question. In this step we retrieve the top K (k = 10) chunks sorted by cosine similarity.</p>
+
+<p>This step checks cosine similarity between the highest‑ranked retrieved chunks and the question; if the similarity is lower than a threshold, that is a signal that we don’t have a chunk that contains the answer to the question. The threshold is a parameter of this system, it can be tuned. The chunking strategy we used, the embedding model we use, may affect the performance of this step.</p>
+
+<p>Here is an example of the of the top 2 retrieved questions sorted by the cosine similarity for the following question <code class="language-bash highlighter-rouge">Can you guys <span class="k">do </span>day 1 remo?</code>:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">content</th>
+      <th style="text-align: right">cosine_similarity</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Porting Applications: To port a product the new mortgage application must complete simultaneously with redemption of the current mortgage. The conveyancer must indicate a product is being ported when they obtain a redemption statement for the existing mortgage; the statement will then explain that the ERC does not need to be included in the redemption monies.</td>
+      <td style="text-align: right">0.389781</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Remortgaging with us - Welcome Call: It is important you advise the customer who the allocated conveyancer is and that they will receive a welcome call from them when the conveyancer will: Introduce themselves and explain they have been appointed to act as conveyancer on behalf of the bank. Provide an outline of next steps, including completion of the remortgage questionnaire and signature of the mortgage deed. Establish customers preferred method of communication throughout the remortgage transaction and encourage use of the conveyancing firm’s online customer portal. Discuss any potential complexities identified from the Land Registry (which they will have reviewed before the call) and set expectations around estimated timescales for completion. Notify the customer of the costs of any additional services payable by the customer. Answer any initial questions that the customer may have.</td>
+      <td style="text-align: right">0.389161</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The question uses informal language (‘you guys’, ‘remo’) and the retrieved chunks, while mentioning remortgaging, don’t specifically address ‘day 1’ remortgages, resulting in low similarity scores</p>
+
+<p>Note that these cosine similarity values of ~0.39 are relatively low (values closer to 1 indicate higher similarity), suggesting poor retrieval quality for this informal question</p>
+
+<p><em>Alternatively, for this step if you have access to a re-ranker model, you can use a re-ranker model to compute the similarity between the questions and the retrieved chunked and use the re-ranker score to filter out the questions for which we don’t have similar chunks.</em></p>
+
+<p>At the end of this step we are only dealing with questions for which we are sure that we have the chunks that can answer them.</p>
+
+<h2 id="answerability-check"><strong>Answerability Check</strong></h2>
+
+<p>Given the question and the set of chunks or reference text, we need to find out if, <strong>based only on the following reference texts, it is possible to answer the question</strong>. This is a binary Yes/No task. If “No”, route to agent. This separates retrieval failure from generation failure.</p>
+
+<p><strong>Methods:</strong></p>
+
+<p>This check can be implemented by using two different approaches:</p>
+
+<ul>
+  <li>The first one is to train a small, cheap classifier that can answer that question and output the binary response.</li>
+  <li>The second one is to prompt an LLM and give it the question and the reference texts and ask it if, based only on the references, it <strong>is</strong> possible to answer the question. We used conditional generation and asked the model to return a binary response.</li>
+</ul>
+
+<p>This metric can also serve as a proxy to the recall metrics commonly used in information retrieval where you have the golden reference chunk to a question.</p>
+
+<p>With the remaining questions and the chunks we can now prompt our LLM to generate the answer to the question.</p>
+
+<h1 id="layer-two-post-generation-rich-checks">Layer Two: Post-Generation: Rich Checks</h1>
+
+<p>This is where we evaluate the actual generated answer.</p>
+
+<figure>
+  <p><img src="/assets/posts/2026-01-27-designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach/post-generation-checks.png" /></p>
+  <figcaption>Main Image</figcaption>
+</figure>
+
+<h2 id="faithfulness-check">Faithfulness Check</h2>
+
+<p>Given the answer and the context used to generate it, the aim of this task is to find out if the answer is grounded in the context or supported by the context. This is the primary defence against hallucinations.</p>
+
+<p>These types of checks are more expensive, but it is where we get the value for the system. Different methods are being developed in the industry to perform this type of task. Let’s highlight some of them:</p>
+
+<h3 id="methods"><strong>Methods:</strong></h3>
+
+<p><strong>Natural Language Inference (NLI):</strong></p>
+
+<p>The natural language inference approach is used widely in fact verification. Given a fact and a bunch of reference text, can we find one reference that confirms or refutes the fact?</p>
+
+<p>That same approach has been used in RAG evaluation. Given an answer and the context, the task similar to the NLI one is to check if the context supports or contradicts the answer. When the context contradicts an answer, we can say that the answer has been hallucinated.</p>
+
+<p>To check, we use a model, we give it an answer or a claim from the answer, and a reference chunk, and then we compute the probability of contradiction between the answer and reference chunks. If that probability is higher than a threshold, we conclude that the answer is hallucinated and not grounded in the references.</p>
+
+<p>The model used to compute the probability of contradiction can be a cross‑encoder model or a classification model trained on this type of task.</p>
+
+<p>Models used in the industry:</p>
+
+<ul>
+  <li>Currently Vectara have developed a model used based on the <a href="https://huggingface.co/vectara/hallucination_evaluation_model">T5 transformer architecture</a>:</li>
+  <li>And the following model was used to compute the scores, it is <a href="https://huggingface.co/tals/albert-xlarge-vitaminc-mnli">Bert Model fine tuned on NLI task.</a></li>
+</ul>
+
+<p><strong>RAGAS Method:</strong></p>
+
+<p>In the <a href="https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/">RAGAS framework</a>, a response is considered <strong>faithful</strong> if all its claims can be supported by the retrieved context.</p>
+
+<p>To calculate this:</p>
+
+<ol>
+  <li>We use an LLM to identify all the claims in the response.</li>
+  <li>Check each claim to see if it can be inferred from the retrieved context. This can be performed using an LLM or NLI method with the claim and the reference.</li>
+  <li>Compute the faithfulness score using the formula:</li>
+</ol>
+
+<p>Example: If the answer states “Halifax offers 2-year and 5-year fixed mortgages,” 
+  the LLM would extract two claims:</p>
+<ol>
+  <li>“Halifax offers 2-year fixed mortgages”</li>
+  <li>“Halifax offers 5-year fixed mortgages”
+  Each claim is then verified against the retrieved context.</li>
+</ol>
+
+<p><strong>LLM As a Judge:</strong></p>
+
+<p>This is a straightforward approach where we just prompt the LLM to check if the answer is grounded in any of the context.</p>
+
+<p>With this approach use the following prompt:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>You are a faithfulness evaluator assessing how truthful a response is to the provided context information.
+
+TASK: Evaluate how faithfully the given answer represents information <span class="k">in </span>the context without hallucination.
+
+INPUTS:
+Question: <span class="o">{</span>question<span class="o">}</span>
+Context: <span class="o">{</span>context_text<span class="o">}</span>
+Answer: <span class="o">{</span>answer<span class="o">}</span>
+
+EVALUATION CRITERIA <span class="o">(</span>equally weighted<span class="o">)</span>:
+1. Factual Alignment: Does the answer only contain facts present <span class="k">in </span>the context?
+2. Completeness: Are all claims <span class="k">in </span>the answer supported by the context?
+3. Precision: Does the answer avoid adding details or interpretations not <span class="k">in </span>the context?
+
+SCORING GUIDE:
+- 1-2: Answer contains significant hallucinations or contradicts the context
+- 3-4: Answer contains some information not supported by the context
+- 5-6: Answer is mostly faithful but includes minor details not <span class="k">in </span>the context
+- 7-8: Answer is faithful with very minimal unsupported information
+- 9-10: Answer is completely faithful with all statements directly supported by the context
+
+EDGE CASES:
+- If answer contains paraphrasing but maintains factual accuracy, consider it faithful
+- If context is ambiguous, be more lenient on faithful interpretation
+- If answer includes common knowledge not <span class="k">in </span>context, focus on whether it contradicts the context
+</code></pre></div></div>
+
+<h2 id="limitations-of-this-method">Limitations of this method</h2>
+
+<p>The NLI methods are data science methods and all of them suffer from no‑free‑lunch theorems.</p>
+
+<p>LLM as a judge are <strong>autoregressive generative models</strong> by nature; they cannot generate consistent responses between runs and are also prone to hallucination, we need to be careful in the choice of model we are picking here. One thing is to avoid using the same model for generation and evaluation.</p>
+
+<p>NLI models, on the other hand, while they are less prone to hallucinations due to the fact that they are <strong>auto‑encoding models</strong>, are consistent with their output but sometimes lack domain knowledge due to the fact that they may not have been trained on the domains we are working with. It is recommended to fine‑tune a model on your own domain and use it for evaluation.</p>
+
+<p>After this step, any answer that has at least one claim that is not supported by the reference is sent to an agent and we continue to the next step with the answers that are fully supported by their contexts.</p>
+
+<h1 id="answer-relevance-checks">Answer Relevance Checks:</h1>
+
+<p>This checks if the generated answer address the question. It measures how relevant a response is to the question, allowing us to find out if the generated answer is a direct response to the original query.</p>
+
+<h2 id="methods-1"><strong>Methods:</strong></h2>
+
+<h3 id="embedding-models"><strong>Embedding Models</strong></h3>
+
+<p>We can perform this by computing the embedding between the question and the answers. It is recommended to not use the same embedding model used for the retrieval to compute this cosine similarity.</p>
+
+<h3 id="ragas-methods">RAGAS Methods:</h3>
+
+<p>An answer is considered relevant if it directly and appropriately addresses the original question. This metric focuses on how well the answer matches the intent of the question, without evaluating factual accuracy. It penalizes answers that are incomplete or include unnecessary details.</p>
+
+<p>This metric is calculated using the question and the response as follows:</p>
+
+<ul>
+  <li>Generate a set of artificial questions (default is 3) based on the response. These questions are designed to reflect the content of the response.</li>
+  <li>Compute the cosine similarity between the embedding of the question (Eo) and the embedding of each generated question (Egi).</li>
+  <li>Take the average of these cosine similarity scores to get the Answer Relevancy:</li>
+</ul>
+
+\[Answer Relevancy = \frac{1}{N} \sum_{i=1}^{n} \text{cosine similarity}(E_{gi}, E_o)\]
+
+<p>If we expand the formula of the cosine similarity this is how it looks like:</p>
+
+\[Answer Relevancy = \frac{1}{N} \sum_{i=1}^{n} \frac{E_{gi} E_o}{||E_{gi}|| ||E_{o}||}\]
+
+<p>Where:</p>
+<ul>
+  <li>\(E_{gi}\): Embedding of the ith generated question.</li>
+  <li>\(E_o\): Embedding of the user input.</li>
+  <li>\(N\): Number of generated questions</li>
+</ul>
+
+<p>The underlying concept is that if the answer correctly addresses the question, it is highly probable that the original question can be reconstructed solely from the answer.</p>
+
+<p><strong>LLM as a judge:</strong></p>
+
+<p>For this method an LLM is prompted with the question and the answer and asked to return a number which indicates how relevant the answer is to the question.</p>
+
+<p>This approach use the following prompt:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>You are an answer relevancy evaluator assessing how well answers address the original question.
+
+TASK: Evaluate how relevant the given answer is to the question, regardless of factual accuracy.
+
+INPUTS:
+Question: <span class="o">{</span>question<span class="o">}</span>
+Answer: <span class="o">{</span>answer<span class="o">}</span>
+
+EVALUATION CRITERIA <span class="o">(</span>equally weighted<span class="o">)</span>:
+1. Direct Addressing: Does the answer directly address what was asked?
+2. Topic Alignment: Is the information <span class="k">in </span>the answer relevant to the question<span class="s1">'s topic?
+3. Focused Response: Does the answer avoid unnecessary tangents or irrelevant details?
+4. Completeness: Does the answer address all aspects of the question (if multi-part)?
+
+SCORING GUIDE:
+- 1-2: Answer is completely off-topic or doesn'</span>t address the question at all
+- 3-4: Answer is tangentially related but misses the main point of the question
+- 5-6: Answer addresses the question but includes irrelevant information or misses parts
+- 7-8: Answer is mostly relevant with minor unrelated details or slight incompleteness
+- 9-10: Answer is perfectly relevant and directly addresses all aspects of the question
+</code></pre></div></div>
+
+<p>and output a score that show how the answer is relevant to the question.</p>
+
+<p>This is the last step of our pipeline and at its end we will have an answer and this answer is finally sent to the user.</p>
+
+<p>Choosing between methods depends on your constraints: NLI models offer consistency and speed, RAGAS provides detailed claim-level analysis, while LLM-as-judge excels at domain adaptability.</p>
+
+<p>This post takes us through the process of evaluating a RAG pipeline, it illustrated a waterfall pipeline that can be used to evaluate the system and how each component of that pipeline can be implemented. The next post illustrates how those steps were implemented with a set of questions we got for our system and how we can quantify the business value of a RAG system. Stay tuned for it.</p>
+
+<h2 id="references">References:</h2>
+
+<ul>
+  <li><a href="https://huggingface.co/transformers/v3.1.0/model_summary.html[hashtag#autoregressive](https://www.linkedin.com/feed/hashtag/?keywords=autoregressive)-models">Hugging Face Blog — Autoregressive and Autoencoding Models Overview</a></li>
+  <li><a href="https://aclanthology.org/C08-1066.pdf">C. Manning, B. MacCartney . Modeling Semantic Containment and Exclusionin Natural Language Inference</a></li>
+  <li><a href="https://www.cs.upc.edu/~ageno/anlp/textualEntailment.pdf">Ageno, A. Textual Entailment: Natural Language Inference Approaches.</a></li>
+  <li><a href="https://milvus.io/ai-quick-reference/what-techniques-can-be-used-to-detect-hallucinations-in-a-raggenerated-answer-for-example-checking-if-all-factual-claims-have-support-in-the-retrieved-text">Milvus Blog — Detecting Hallucinations in RAG-Generated Answers.</a></li>
+  <li><a href="https://huggingface.co/vectara/hallucination_evaluation_model">Vectara — Hallucination Evaluation Model (T5-Based Cross Encoder).</a></li>
+  <li><a href="https://huggingface.co/tals/albert-xlarge-vitaminc-mnli">Tals — ALBERT-XLarge VitaminC MNLI Model.</a></li>
+  <li><a href="https://arxiv.org/abs/2111.09525">Phillipe Laban et al. (2021). SummaC: Re-Visiting NLI-based Models for Factual Consistency Evaluation.</a></li>
+  <li><a href="https://arxiv.org/html/2411.01022">Tanner Sorensen. (2024). Provenance Approach for Hallucination Detection in RAG Systems.</a></li>
+</ul>
+
+<p><em>Disclaimer: This post describes general RAG evaluation methodologies  learned during a project. All views are my own and do not represent  my employer. No confidential or proprietary information is disclosed.</em></p>
+
+    </div>
+
+    <br>
+Comments
+<br>
+<!--Every article has a id, but special pages don't unless you set manually.
+This prevents Cusdis from appear everywhere-->
+<div id="cusdis_thread"
+  data-host="https://cusdis.com"
+  data-app-id="49460c1b-dcbb-4633-8c78-63d7b5100f73"
+  data-page-id="/designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach"
+  data-page-url="http://localhost:4000/designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach"
+  data-page-title="Designing Trustworthy RAG Systems. Part One: A Step By Step Waterfall Evaluation Approach"
+  data-theme="dark"
+></div>
+<script defer src="https://cusdis.com/js/cusdis.es.js"></script>
+
+  </div>
+
+</article>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <ul class="social">
+  <li><a href="https://github.com/espoirMur" target="_blank"><i class="icon icon-github"></i></a></li>
+  <li><a href="https://twitter.com/esp_py" target="_blank"><i class="icon icon-twitter"></i></a></li>
+  <li><a href="https://www.linkedin.com/in/espoirMur/" target="_blank"><i class="icon icon-linkedin"></i></a></li>
+  <li><a href="https://stackoverflow.com/users/4683950/espoir-murhabazi" target="_blank"><i class="fa-brands fa-stack-overflow"></i></a></li>
+</ul>
+
+    <p class="txt-medium-gray">
+      <small>&copy;2026 All rights reserved. Made with <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> and ♥</small>
+    </p>
+  </div>
+</footer>
+
+
+</body>
+</html>
