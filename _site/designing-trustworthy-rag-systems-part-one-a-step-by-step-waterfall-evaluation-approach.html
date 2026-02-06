@@ -175,7 +175,7 @@
 
 <p>Given the question and the set of chunks or reference text, we need to find out if, <strong>based only on the following reference texts, it is possible to answer the question</strong>. This is a binary Yes/No task. If “No”, route to agent. This separates retrieval failure from generation failure.</p>
 
-<p><strong>Methods:</strong></p>
+<h3 id="methods"><strong>Methods:</strong></h3>
 
 <p>This check can be implemented by using two different approaches:</p>
 
@@ -203,9 +203,9 @@
 
 <p>These types of checks are more expensive, but it is where we get the value for the system. Different methods are being developed in the industry to perform this type of task. Let’s highlight some of them:</p>
 
-<h3 id="methods"><strong>Methods:</strong></h3>
+<h3 id="methods-1"><strong>Methods:</strong></h3>
 
-<p><strong>Natural Language Inference (NLI):</strong></p>
+<h4 id="natural-language-inference-nli"><strong>Natural Language Inference (NLI):</strong></h4>
 
 <p>The natural language inference approach is used widely in fact verification. Given a fact and a bunch of reference text, can we find one reference that confirms or refutes the fact?</p>
 
@@ -222,7 +222,7 @@
   <li>And the following model was used to compute the scores, it is <a href="https://huggingface.co/tals/albert-xlarge-vitaminc-mnli">Bert Model fine tuned on NLI task.</a></li>
 </ul>
 
-<p><strong>RAGAS Method:</strong></p>
+<h4 id="ragas-method"><strong>RAGAS Method:</strong></h4>
 
 <p>In the <a href="https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/">RAGAS framework</a>, a response is considered <strong>faithful</strong> if all its claims can be supported by the retrieved context.</p>
 
@@ -242,7 +242,7 @@
   Each claim is then verified against the retrieved context.</li>
 </ol>
 
-<p><strong>LLM As a Judge:</strong></p>
+<h4 id="llm-as-a-judge"><strong>LLM As a Judge:</strong></h4>
 
 <p>This is a straightforward approach where we just prompt the LLM to check if the answer is grounded in any of the context.</p>
 
@@ -275,7 +275,7 @@ EDGE CASES:
 - If answer includes common knowledge not <span class="k">in </span>context, focus on whether it contradicts the context
 </code></pre></div></div>
 
-<h2 id="limitations-of-this-method">Limitations of this method</h2>
+<h3 id="limitations-of-this-method">Limitations of this method</h3>
 
 <p>The NLI methods are data science methods and all of them suffer from no‑free‑lunch theorems.</p>
 
@@ -285,17 +285,17 @@ EDGE CASES:
 
 <p>After this step, any answer that has at least one claim that is not supported by the reference is sent to an agent and we continue to the next step with the answers that are fully supported by their contexts.</p>
 
-<h1 id="answer-relevance-checks">Answer Relevance Checks:</h1>
+<h2 id="answer-relevance-checks">Answer Relevance Checks:</h2>
 
 <p>This checks if the generated answer address the question. It measures how relevant a response is to the question, allowing us to find out if the generated answer is a direct response to the original query.</p>
 
-<h2 id="methods-1"><strong>Methods:</strong></h2>
+<h3 id="methods-2"><strong>Methods:</strong></h3>
 
-<h3 id="embedding-models"><strong>Embedding Models</strong></h3>
+<h4 id="embedding-models"><strong>Embedding Models</strong></h4>
 
 <p>We can perform this by computing the embedding between the question and the answers. It is recommended to not use the same embedding model used for the retrieval to compute this cosine similarity.</p>
 
-<h3 id="ragas-methods">RAGAS Methods:</h3>
+<h4 id="ragas"><strong>RAGAS:</strong></h4>
 
 <p>An answer is considered relevant if it directly and appropriately addresses the original question. This metric focuses on how well the answer matches the intent of the question, without evaluating factual accuracy. It penalizes answers that are incomplete or include unnecessary details.</p>
 
@@ -322,7 +322,7 @@ EDGE CASES:
 
 <p>The underlying concept is that if the answer correctly addresses the question, it is highly probable that the original question can be reconstructed solely from the answer.</p>
 
-<p><strong>LLM as a judge:</strong></p>
+<h4 id="llm-as-a-judge-1"><strong>LLM as a judge:</strong></h4>
 
 <p>For this method an LLM is prompted with the question and the answer and asked to return a number which indicates how relevant the answer is to the question.</p>
 
