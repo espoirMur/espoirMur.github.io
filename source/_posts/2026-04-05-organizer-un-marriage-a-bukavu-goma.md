@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Organizer un marriage a Bukavu en RDC, some lessons learned"
+title: "Organizer un marriage a Bukavu en RDC, some lessons learned!"
 permalink: organizer-un-marriage-a-bukavu-goma
 date: 2026-04-04 02:53:59
 comments: true
@@ -17,11 +17,6 @@ tags:
 published: true
 is_draft: true
 ---
-
-# Organizer un marriage a Bukavu en RDC, some lessons learned
-
-
-
 I was full of joy when my two sisters announced me their wedding in a year ago. However I was fearfull and wondering I will be able to plan and organise a proper weedding ceremony in a city like Bukavu. 
 
 As anytiime I face a challenging situation or a big project in my career I started looking on the internet to check if there was any guide or any writing on weddding in Congo. Unfortunately,I was not successfull in my search. Reason why I decided to write this guid to share my experience acquire while palnning for  my sister wedding.
