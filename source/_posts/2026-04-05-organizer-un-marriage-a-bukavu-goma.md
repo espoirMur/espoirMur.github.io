@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "organizer un marriage a bukavu goma"
+title: "Organizer un marriage a Bukavu en RDC, some lessons learned"
 permalink: organizer-un-marriage-a-bukavu-goma
-date: 2026-04-05 02:53:59
+date: 2026-04-04 02:53:59
 comments: true
 description: "Complete guide to planning a traditional wedding in Bukavu, Congo..."
 description: "Guide complet pour organiser un mariage traditionnel à Bukavu, Congo. Venue, catering, invitations, service et budget avec conseils pratiques.
@@ -18,7 +18,7 @@ published: true
 is_draft: true
 ---
 
-# Organizer un Marriage a Bukavu
+# Organizer un marriage a Bukavu en RDC, some lessons learned
 
 
 
