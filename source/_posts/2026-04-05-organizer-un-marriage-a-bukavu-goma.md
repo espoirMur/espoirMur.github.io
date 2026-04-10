@@ -189,7 +189,7 @@ Another key factor for the party's success was the service staff, or "protocol."
 
 ## Final Cost
 
-The final cost of the my two sister wedding in 2024 was around 10 000 USD for the party. I will share a breakdown of those cost in this spreadsheet.
+The final cost of the my two sister wedding in 2024 was around 10 000 USD for the party. I will share a breakdown of those cost in [this spreadsheet.](https://docs.google.com/spreadsheets/d/10djUQyw36jEsFTQ4QIegLdAwnP5PgKOdOdPKrDfv6CA/edit?gid=750956200#gid=750956200)
 
 ###  How do people cover those ceremonies?
 
