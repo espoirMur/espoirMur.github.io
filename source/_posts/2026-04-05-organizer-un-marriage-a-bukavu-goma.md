@@ -15,7 +15,7 @@ categories:
 tags:
 
 published: true
-is_draft: true
+is_draft: false
 ---
 
 {% include image.html name="cover.JPEG" caption="The Beauty of Lake Kivu" %}
@@ -53,7 +53,7 @@ A wedding in Congo involves many ceremonies, and sometimes it is easy to get los
 
 - **The Traditional Wedding (Dot):** The first event of the wedding process is the traditional wedding, or dot. This is the moment when the groom's family brings the dowry to the bride's family. 
 
-{% include image.html name="dot2.png" caption=" The dowry Ceremony, Each Sick Represent A Goat" %}
+{% include image.html name="dot2.png" caption=" The dowry Ceremony, Each Sick Represent a cow" %}
 
 Since my two sisters married different men from different families, we had to organize two separate traditional weddings.  This meant organizing two different parties on two different dates. The budget for each ceremony was around $1,000 USD for both food and drinks.
 
