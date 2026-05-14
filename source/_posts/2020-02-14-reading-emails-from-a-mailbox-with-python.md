@@ -4,9 +4,9 @@ date: "2020-02-14T01:12:03.284Z"
 description: "Tutorials on how to read emails with  Python"
 layout: post
 comments: true
-categories: tech
+# was: tech
+categories: draft
 published: true
-is_draft: true
 ---
 
 ### The Problem

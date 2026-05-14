@@ -6,7 +6,7 @@ date: 2022-03-27 13:36:01
 comments: true
 description: "How I fix this issue NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running"
 keywords: ""
-categories:
+categories: tech
 layout: post
 tags:
 published: true

@@ -4,7 +4,7 @@ date: "2020-03-26T00:12:03.284Z"
 description: "Conseils pour le travail à distance en Afrique"
 layout: post
 comments: true
-categories: non-tech
+categories: education
 published: true
 is_draft: false
 ---

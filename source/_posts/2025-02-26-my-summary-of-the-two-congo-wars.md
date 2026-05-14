@@ -6,7 +6,7 @@ date: 2025-02-26 17:03:51
 comments: true
 description: "Who caused the Congo Wars? Explore the roles of the Tutsi, Congolese leaders, and external actors in the two congo war. A deep dive into accountability and lessons for peace."
 keywords: "Tutsi role in Congo Wars, Congolese responsibility in Congo Wars, Rwanda and Congo conflict, Laurent-Désiré Kabila and Congo Wars, RCD, AFDL"
-categories:
+categories: politics
 
 tags:
 

@@ -1,0 +1,19 @@
+---
+layout: pages
+title: Education
+permalink: /blog/education/
+---
+
+{% include category-nav.html %}
+
+<div class="category-header">
+  <p>Education is something that I am really interested in. I write about advice to Congolese and young software engineers to navigate their career.</p>
+</div>
+
+<section class="post-list">
+{% for post in site.categories.education %}
+  {% unless post.categories contains 'draft' %}
+    {% include article.html %}
+  {% endunless %}
+{% endfor %}
+</section>

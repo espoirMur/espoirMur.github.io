@@ -6,7 +6,7 @@ date: 2024-01-19 07:03:59
 comments: true
 description: "How to deploy a transformer models in production using the triton server"
 keywords: "triton, Docker, Machine-Translation"
-categories: 
+categories: tech
 tags: docker, transformer, devops, translation
 published: false
 ---

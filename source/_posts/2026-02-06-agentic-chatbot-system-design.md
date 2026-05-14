@@ -6,12 +6,12 @@ date: 2026-02-05
 comments: true
 description: "A high level design of a customer support chatbot with Agentic AI"
 keywords: ""
-categories:
+# was: tech
+categories: draft
 
 tags:
 
 published: true
-is_draft: true
 ---
 
 In this post I will describe how I answer a take home test for an AI Engineer Role.

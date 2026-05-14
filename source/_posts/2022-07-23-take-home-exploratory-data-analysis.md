@@ -6,7 +6,7 @@ date: 2022-07-23 10:03:59
 comments: true
 description: "Guide for exploratory data analysis in python for data science"
 keywords: "data-science, Exploratory Data Analysis, Stores, Python, Machine Learning"
-categories: 
+categories: tech
 published: false
 tags: python, data-science, exploratory-data-analysis, machine-learning
 ---

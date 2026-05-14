@@ -8,7 +8,7 @@ published: true
 is_draft: false 
 description: "Mounting Oracle Cloud Storage as Volume in Containers with Kubernetes."
 keywords: "Volumes, S3, Cloud-Storage, MLOPS, Kubernetes, Docker"
-categories:
+categories: tech
 
 tags:
 

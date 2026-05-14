@@ -6,7 +6,7 @@ date: 2022-04-06 10:22:56
 comments: true
 description: "Master programs and scholarships for young Africans and Congolese nationals in computer science , artificial intelligence , machine learning"
 keywords: "master’s, Africa, academia, scholarship, master computer science Africa"
-categories: "non-tech"
+categories: education
 published: true
 is_draft: false
 ---

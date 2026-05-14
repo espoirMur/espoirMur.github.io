@@ -74,3 +74,4 @@ yarn-error.log
 */.jekyll-cache/*
 .bundle/
 vendor/
+_site/

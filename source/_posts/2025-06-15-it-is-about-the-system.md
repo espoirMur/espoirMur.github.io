@@ -6,7 +6,7 @@ date: 2025-06-15 00:44:53
 comments: true
 description: "it-is-about-the-system"
 keywords: ""
-categories:
+categories: social-life
 
 tags:
 

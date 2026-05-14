@@ -6,7 +6,7 @@ date: 2025-09-15
 comments: true
 description: "This guide reveals how to use a CROSS Lateral join for  batch vector search with PSQL PostgreSQL and PgVector. We break down the SQL magic, compare it to the UNION ALL approach, and show you how to improve the efficiency of your PGVector searches for RAG applications."
 keywords: ""
-categories:
+categories: tech
 tags: postgres, pgvector, vectorsearch, sql, rag
 
 published: true
