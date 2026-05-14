@@ -156,8 +156,8 @@ The agent must:</p>
 <h2 id="agent-architecture">Agent Architecture:</h2>
 
 <figure>
-  <p><img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/main-system-architecture.png" /></p>
-  <figcaption>Main System Architecture</figcaption>
+<img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/main-system-architecture.png" />
+<figcaption>Main System Architecture<br /><small></small></figcaption>
 </figure>
 
 <p>The system will be built with different components, the next post will describe the component of the system:</p>
@@ -175,8 +175,8 @@ The agent must:</p>
 <h3 id="orchestration-component">Orchestration Component</h3>
 
 <figure>
-  <p><img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/orchestrator-component.png" /></p>
-  <figcaption>Orchestrator component</figcaption>
+<img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/orchestrator-component.png" />
+<figcaption>Orchestrator component<br /><small></small></figcaption>
 </figure>
 
 <p>The second Component of our  architecture will be the orchestrator component.</p>
@@ -199,8 +199,8 @@ Note if the question has two intent in it, we will consider it as two separate q
 <h3 id="the-agentic-component">The Agentic Component</h3>
 
 <figure>
-  <p><img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/agentic-component.png" /></p>
-  <figcaption>Agentic Component</figcaption>
+<img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/agentic-component.png" />
+<figcaption>Agentic Component<br /><small></small></figcaption>
 </figure>
 
 <p>This will start first by checking the conversation history to build the context of the question, then ask the LLM to generate a plan to answer the question given the conversation history. After the plan is generated it will be validated, if it fails we can refine it 2 to 3 times and then if it fails we will return the question to the human agent.</p>
@@ -300,8 +300,8 @@ In the conversation memory we will be saving the summarized version of the user 
 <p>This is the architecture that will perform the search:</p>
 
 <figure>
-  <p><img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/rag-architecture.png" /></p>
-  <figcaption>RAG Architecture</figcaption>
+<img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/rag-architecture.png" />
+<figcaption>RAG Architecture<br /><small></small></figcaption>
 </figure>
 
 <p>Query builder, we will use an LLM to decompose the user query in multiple subqueries and keywords to facilitate search.
@@ -335,8 +335,8 @@ When you can generate the answer <span class="k">return </span>the list of citat
 <h3 id="evaluation-and-guardrails">Evaluation and Guardrails</h3>
 
 <figure>
-  <p><img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/evaluation-guardrails.png" /></p>
-  <figcaption>RAG Architecture</figcaption>
+<img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/evaluation-guardrails.png" />
+<figcaption>RAG Architecture<br /><small></small></figcaption>
 </figure>
 
 <ul>
@@ -353,8 +353,8 @@ The threshold for the guardrail will be adjusted after evaluation and discussed 
 <h3 id="trade-off-analysis">Trade-off Analysis</h3>
 
 <figure>
-  <p><img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/trade-off-latency.png" /></p>
-  <figcaption>Latency Trade off</figcaption>
+<img src="/assets/posts/2026-02-05-agentic-chatbot-system-design/trade-off-latency.png" />
+<figcaption>Latency Trade off<br /><small></small></figcaption>
 </figure>
 
 <p>We cannot pick all the 3, we can only pick 2.</p>

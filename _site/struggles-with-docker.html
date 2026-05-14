@@ -98,8 +98,8 @@
       
       
 <figure>
-  <p><img src="/assets/posts/2023-03-07-struggles-with-docker/container-repair.png" /></p>
-  <figcaption> Mechanic fixing container image by : </figcaption>
+<img src="/assets/posts/2023-03-07-struggles-with-docker/container-repair.png" />
+<figcaption> Mechanic fixing container image by : <br /><small></small></figcaption>
 </figure>
 
 <p>Learning Kubernetes has been on my bucket list for years. I always said that when I had the time, I would learn it because it is one of those tools missing from my developer toolbox.</p>
@@ -113,8 +113,8 @@
 <p>My troubles and bugs started when I ran the following command to create the Seldon deployment:</p>
 
 <figure>
-  <p><img src="/assets/posts/2023-03-07-struggles-with-docker/seldon-core.png" /></p>
-  <figcaption>Overview of Seldon Core Components</figcaption>
+<img src="/assets/posts/2023-03-07-struggles-with-docker/seldon-core.png" />
+<figcaption>Overview of Seldon Core Components<br /><small></small></figcaption>
 </figure>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>yaml
@@ -191,10 +191,9 @@ spec:
 <p>The image was large and took approximately 10 minutes to download, maybe because my internet connection this weekend was not at its best. But after that, I passed that issue, but that was not all. There was another bug waiting for me:</p>
 
 <figure>
-  <p><img src="/assets/posts/2023-03-07-struggles-with-docker/car-fails-to-start.jpeg" /></p>
-  <figcaption>Car failing to start</figcaption>
+<img src="/assets/posts/2023-03-07-struggles-with-docker/car-fails-to-start.jpeg" />
+<figcaption>Car failing to start<br /><small></small></figcaption>
 </figure>
-
 <h2 id="readiness-probe-failed">Readiness probe failed</h2>
 
 <p>When I described my pod, I found that the image was pulled and the container was running for a few seconds, and then it stopped with this message:</p>

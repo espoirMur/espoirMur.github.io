@@ -18,18 +18,18 @@
 }
 
 [data-theme="dark"] {
-  --bg-color: #181824;
-  --bg-secondary: #232333;
-  --text-color: #f0f0f0;
-  --text-muted: #9a9a9a;
-  --border-color: rgba(222, 222, 222, 0.5);
-  --link-color: #9a9a9a;
-  --link-hover: #dedede;
+  --bg-color: #1a1d2e;
+  --bg-secondary: #212336;
+  --text-color: #d8dce8;
+  --text-muted: #a0aec0;
+  --border-color: rgba(160, 170, 200, 0.12);
+  --link-color: #a5b4fc;
+  --link-hover: #c7d2fe;
   --accent-color: #b840fd;
-  --card-bg: #181824;
+  --card-bg: #212336;
   --card-shadow: rgba(0, 0, 0, 0.3);
-  --code-bg: #2d2d3d;
-  --header-bg: #181824;
+  --code-bg: #252a40;
+  --header-bg: #1a1d2e;
 }
 
 // Theme toggle button styles

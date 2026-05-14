@@ -99,8 +99,8 @@
       <p>If you search online for ways to detect RAG response faithfulness, most posts recommend using an ‘LLM-as-a-judge’ approach. However anyone who has some statistical knowledge will have a doubt about using LLM as a judge to detect faithfulness. How can a model prone to hallucination  detect hallucination? 🤔”</p>
 
 <figure>
-  <p><img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/obama.png" /></p>
-  <figcaption>LLM as a Judge</figcaption>
+<img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/obama.png" />
+<figcaption>LLM as a Judge<br /><small></small></figcaption>
 </figure>
 
 <p>In this post, we’ll explore what “hallucinations” mean in the context of Large Language Models (LLMs). We’ll look at two kinds of LLMs and see which ones tend to hallucinate more often. Then, we’ll shift to a different approach that uses models less likely to hallucinate, introduce the idea of Natural Language Inference (NLI), and see how NLI can help check the faithfulness of RAG responses. Finally, we’ll look at how these ideas work in real-world production systems, more precisely in the example of the AIM usecase.</p>
@@ -146,8 +146,8 @@
 <h3 id="how-does-that-work-in-practice">How does that work in practice?</h3>
 
 <figure>
-  <p><img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/nli_approach.png" /></p>
-  <figcaption>Natural Language Inference</figcaption>
+<img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/nli_approach.png" />
+<figcaption>Natural Language Inference<br /><small></small></figcaption>
 </figure>
 
 <h3 id="natural-language-entailment">Natural Language Entailment</h3>
@@ -169,8 +169,8 @@
 <p>So Given a hypothesis, and a text, a cross encoder is trained to predict if the text is entailed by the hypothesis. To achieve that the model predicts 3 different probabilities which are the probability of entailment, contradiction or neutrality between the text and the hypothesis.</p>
 
 <figure>
-  <p><img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/cross-encoder.png" /></p>
-  <figcaption>Cross encoder for Entailment</figcaption>
+<img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/cross-encoder.png" />
+<figcaption>Cross encoder for Entailment<br /><small></small></figcaption>
 </figure>
 
 <p><a href="https://milvus.io/ai-quick-reference/what-techniques-can-be-used-to-detect-hallucinations-in-a-raggenerated-answer-for-example-checking-if-all-factual-claims-have-support-in-the-retrieved-text">Reference: Mlivus Post on Detecting Hallucinations.</a></p>
@@ -188,8 +188,8 @@
 <p>The second approach we use the answer and check if the answer without splitting it into chunk it is supported or not supported by the chunk.</p>
 
 <figure>
-  <p><img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/SummaC.png" /></p>
-  <figcaption>Sentence Level Hallucination detection approach from SummaC</figcaption>
+<img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/SummaC.png" />
+<figcaption>Sentence Level Hallucination detection approach from SummaC<br /><small></small></figcaption>
 </figure>
 
 <p>Given the answer split into sentences and the chunks used to generate the answers.</p>
@@ -240,8 +240,8 @@
 <h3 id="provenance-approach--ref">Provenance Approach : <a href="https://arxiv.org/html/2411.01022">Ref</a></h3>
 
 <figure>
-  <p><img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/provenance.png" /></p>
-  <figcaption>Provenance Approach for Hallucination detection</figcaption>
+<img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/provenance.png" />
+<figcaption>Provenance Approach for Hallucination detection<br /><small></small></figcaption>
 </figure>
 
 <p>The provenance approach uses a NLI cross encoder but with a slight difference from the SummaC approach.</p>
@@ -279,8 +279,8 @@
 <p>Here is an example of the score produce after splitting the answer by sentence.</p>
 
 <figure>
-  <p><img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/nli_scores.png" /></p>
-  <figcaption>entailment scores</figcaption>
+<img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/nli_scores.png" />
+<figcaption>entailment scores<br /><small></small></figcaption>
 </figure>
 
 <p>Each row in the table bellow contains a chunk returned for the question: <strong>I have a client who has a buy to let mortgage which is rented out, will Halifax use the profits from this for resi affordability purposes?</strong>, the column contain each sentence in the generated answer. The cell value is a array [x1, x2, x3] x1: is the probability of entailment, x2: is the probability of contradiction x3 . is the probability of neutrality.</p>
@@ -288,8 +288,8 @@
 <p>In the second table we pick the maximum value for in each cell. If the maximum is x1 the color of the cell is green and that means entailment. If the maximum is x2, we put the color red which mean contradiction, if it x3 we put the color green which mean neutrality.</p>
 
 <figure>
-  <p><img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/sentence_level_nli.png" /></p>
-  <figcaption>Hallucination score if we split the sentence</figcaption>
+<img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/sentence_level_nli.png" />
+<figcaption>Hallucination score if we split the sentence<br /><small></small></figcaption>
 </figure>
 
 <p>An answer is marked hallucinated if there is at least one contradictory statement between a sentence and the chunk with a probability greater than 50%.</p>
@@ -307,8 +307,8 @@
 <p>An answer is marked invalid using the same rule as the first section.</p>
 
 <figure>
-  <p><img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/answer_level_nli.png" /></p>
-  <figcaption>Example of a hallucinated answer without splitting</figcaption>
+<img src="/assets/posts/2025-11-10-natural-language-inference-for-hallucination-detection-in-rag-responses/answer_level_nli.png" />
+<figcaption>Example of a hallucinated answer without splitting<br /><small></small></figcaption>
 </figure>
 
 <h3 id="limitation-of-the-nli-approach">Limitation of the NLI Approach</h3>

@@ -1,20 +1,18 @@
-{% capture includeGuts %}
-{% capture postLink %}{% if {{page.permalink}} %}{{page.permalink}}{% else %}{{ (page.title | slugify : 'latin') }}{% endif %}{% endcapture %}
+{% capture includeGuts %}{% capture postLink %}{% if page.permalink %}{{ page.permalink }}{% else %}{{ page.title | slugify: 'latin' }}{% endif %}{% endcapture %}
 
-{% capture imagePath %}{{ page.date | date: "%Y-%m-%d" }}-{{postLink}}/{{ include.name }}{% endcapture %}
-{% capture imageFullPath %} /assets/posts/{{ imagePath }} {% endcapture %}
-{% if include.name  contains 'http' %}
-    <img markdown="1" src="{{include.name}}" {% if include.alt %} alt="this is the alt of images" {% endif %} {% if include.width %} width="{{ include.width }}" {% endif %}/>
+{% capture imagePath %}{{ page.date | date: "%Y-%m-%d" }}-{{ postLink }}/{{ include.name }}{% endcapture %}
+{% capture imageFullPath %}/assets/posts/{{ imagePath }}{% endcapture %}
+{% if include.name contains 'http' %}
+<img src="{{ include.name }}" {% if include.alt %} alt="{{ include.alt }}" {% endif %} {% if include.width %} width="{{ include.width }}" {% endif %}/>
 {% else %}
 {% if include.caption %}
-    <figure markdown="1">
-        <img src="{{imageFullPath | prepend: site.baseurl | replace: ' ', ''}}"  {% if include.alt %} alt="this is the alt of images" {% endif %} {% if include.width %} width="{{ include.width }}" {% endif %}/>
-        <figcaption>{{ include.caption }}</figcaption>
-    </figure>
+<figure>
+<img src="{{ imageFullPath | prepend: site.baseurl | replace: ' ', '' }}" {% if include.alt %} alt="{{ include.alt }}" {% endif %} {% if include.width %} width="{{ include.width }}" {% endif %}/>
+<figcaption>{{ include.caption }}<br><small>{{ include.source }}</small></figcaption>
+</figure>
 {% else %}
-    <img markdown="1" src= "{{imageFullPath | prepend: site.baseurl | replace: ' ', ''}}" {% if include.alt %} alt="this is anothe alt" {% endif %} {% if include.width %} width="{{ include.width }}" {% endif %}/>
+<img src="{{ imageFullPath | prepend: site.baseurl | replace: ' ', '' }}" {% if include.alt %} alt="{{ include.alt }}" {% endif %} {% if include.width %} width="{{ include.width }}" {% endif %}/>
 {% endif %}
-{% endif %} 
+{% endif %}
 {% endcapture %}
-{{ includeGuts | replace: '    ', ''}}
-
+{{ includeGuts | strip }}
