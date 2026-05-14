@@ -4,7 +4,7 @@ date : 2021-12-27T18:20:39
 description: Boxing Day is an important day in the premier league season; hence as a Manchester City supporter Espoir Murhabazi relates about his experience watching a Premier League game live in Manchester. 
 layout: post
 comments: true
-categories: non-tech
+categories: social-life
 published: true
 is_draft: false
 ---

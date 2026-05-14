@@ -5,8 +5,8 @@
     <description>Murhabazi Buzina Espoir Home on the internet</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 14 May 2026 18:02:25 +0100</pubDate>
-    <lastBuildDate>Thu, 14 May 2026 18:02:25 +0100</lastBuildDate>
+    <pubDate>Thu, 14 May 2026 18:30:34 +0100</pubDate>
+    <lastBuildDate>Thu, 14 May 2026 18:30:34 +0100</lastBuildDate>
     <generator>Jekyll v4.2.2</generator>
     
       <item>
@@ -248,6 +248,8 @@ Forget about the politics and the Congo-Rwanda conflict and go and have your deg
         <guid isPermaLink="true">http://localhost:4000/a-letter-to-young-congolese-finishing-high-school</guid>
         
         
+        <category>education</category>
+        
       </item>
     
       <item>
@@ -463,6 +465,8 @@ Forget about the politics and the Congo-Rwanda conflict and go and have your deg
         <link>http://localhost:4000/organizer-un-marriage-a-bukavu-goma</link>
         <guid isPermaLink="true">http://localhost:4000/organizer-un-marriage-a-bukavu-goma</guid>
         
+        
+        <category>social-life</category>
         
       </item>
     
@@ -782,6 +786,8 @@ Maximum token per component.&lt;/p&gt;
         <guid isPermaLink="true">http://localhost:4000/agentic-chatbot-system-design</guid>
         
         
+        <category>tech</category>
+        
       </item>
     
       <item>
@@ -1068,6 +1074,8 @@ SCORING GUIDE:
         <guid isPermaLink="true">http://localhost:4000/designing-trustworthy-rag-systems-part-one-a-step-by-step-waterfall-evaluation-approach</guid>
         
         
+        <category>tech</category>
+        
       </item>
     
       <item>
@@ -1321,6 +1329,8 @@ SCORING GUIDE:
         <guid isPermaLink="true">http://localhost:4000/natural-language-inference-for-hallucination-detection-in-rag-responses</guid>
         
         
+        <category>tech</category>
+        
       </item>
     
       <item>
@@ -1540,6 +1550,8 @@ n, vector_n
         <category>rag</category>
         
         
+        <category>tech</category>
+        
       </item>
     
       <item>
@@ -1677,6 +1689,8 @@ Cheers…&lt;/p&gt;
         <link>http://localhost:4000/resources-to-prepare-for-chevening-application</link>
         <guid isPermaLink="true">http://localhost:4000/resources-to-prepare-for-chevening-application</guid>
         
+        
+        <category>education</category>
         
       </item>
     
@@ -1823,6 +1837,8 @@ The bellow picture describes how the entailment matrix works. Cite[8]&lt;/p&gt;
         
         <category>Summarization</category>
         
+        
+        <category>tech</category>
         
       </item>
     
@@ -2072,6 +2088,8 @@ Those different parties fought against each other and killed a lot of the civili
         <guid isPermaLink="true">http://localhost:4000/my-summary-of-the-two-congo-wars</guid>
         
         
+        <category>politics</category>
+        
       </item>
     
       <item>
@@ -2167,6 +2185,8 @@ Those different parties fought against each other and killed a lot of the civili
         <link>http://localhost:4000/the-truth-about-congolese-tutsi</link>
         <guid isPermaLink="true">http://localhost:4000/the-truth-about-congolese-tutsi</guid>
         
+        
+        <category>politics</category>
         
       </item>
     

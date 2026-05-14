@@ -6,7 +6,7 @@ date: 2025-06-07 21:53:21
 comments: true
 description: "A summary for day two of the Pydata London Conference"
 keywords: ""
-categories:
+categories: tech
 
 tags:
 

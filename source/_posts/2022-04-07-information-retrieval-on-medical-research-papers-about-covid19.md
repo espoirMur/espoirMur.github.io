@@ -6,7 +6,7 @@ date: 2022-04-07 12:03:59
 comments: true
 description: "Information Retrieval on medical research papers about CORD-19 dataset"
 keywords: "Information Retrieval, Medical Research, Covid19, CORD-19 dataset"
-categories:
+categories: tech
 published: true
 is_draft: false
 

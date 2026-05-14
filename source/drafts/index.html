@@ -7,8 +7,10 @@ permalink: /drafts/
 ---
 <h1 class="page-heading"> Draft Posts</h1>
 
+{% include category-nav.html %}
 The post I am working on , but not yet ready to be published. 
 Just post them and let people to read them! They are working in progress and may contains typos.
+
 <section class="post-list">
   {% for post in site.posts %}
     {% if post.is_draft == true %}

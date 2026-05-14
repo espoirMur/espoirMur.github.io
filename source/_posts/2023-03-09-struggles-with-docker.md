@@ -6,7 +6,7 @@ date: 2023-03-07 10:03:59
 comments: true
 description: "How I fixed  Error: ErrImagePull rpc error: code = Unknown desc = context deadline exceeded code with Kubernetes and kubelet Readiness probe failed: HTTP probe failed with statuscode: 503  on Kubernetes and Seldon-core."
 keywords: "Kubernetes, Docker, MLops"
-categories: 
+categories: tech
 published: true
 is_draft: false
 tags: docker, kubernetes, devops

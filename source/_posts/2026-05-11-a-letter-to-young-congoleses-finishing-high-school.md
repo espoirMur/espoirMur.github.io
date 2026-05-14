@@ -6,7 +6,7 @@ date: 2026-05-10 18:50:34
 comments: true
 description: "A Letter to Young Congoleses Finishing High School"
 keywords: ""
-categories:
+categories: education
 
 tags:
 

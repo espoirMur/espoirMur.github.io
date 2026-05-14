@@ -4,7 +4,7 @@ date : 2021-11-05T23:00:36
 description:  "Lessons learned while Applying to Master’s Degrees In the UK as  francophone student."
 layout: post
 comments: false
-categories: non-tech
+categories: education
 published: true
 is_draft: false
 ---

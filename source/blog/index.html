@@ -6,6 +6,8 @@ title: read();
 permalink: /blog/
 ---
 
+{% include category-nav.html %}
+
 <section class="post-list">
 {% for post in paginator.posts %}
   {% if post.is_draft == false %}

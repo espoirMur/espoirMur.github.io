@@ -4,7 +4,7 @@ date: "2020-11-19T00:12:03.284Z"
 description: "As summary on how my english test was."
 layout: post
 comments: true
-categories: non-tech
+categories: education
 published: true
 is_draft: false
 ---

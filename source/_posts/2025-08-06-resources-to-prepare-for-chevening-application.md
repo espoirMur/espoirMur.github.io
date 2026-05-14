@@ -8,6 +8,7 @@ description: "A collection of different resources:  blog posts and videos that w
 keywords: "Chevening, Scholarship, StudyInUK, ChosenForChevening"
 published: true
 is_draft: false
+categories: education
 ---
 
 

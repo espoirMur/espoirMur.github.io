@@ -3,7 +3,7 @@ title : "Joining Spiny AI"
 date : "2020-11-30T00:54:01"
 description: "I finally joined spiny ai"
 comments: true
-categories: non-tech
+categories: tech
 layout: post
 published: true
 is_draft: false

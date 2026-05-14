@@ -6,7 +6,7 @@ date: 2025-01-15 22:23:57
 comments: true
 description: "Learn how to set up and run Flyte, an open-source orchestrator for ML pipelines, on a Mac M1 using k3d."
 keywords: "Flyte, Mac M1, k3d, Kubernetes, ML pipelines, installation guide"
-categories:
+categories: tech
 published: true
 is_draft: true
 ---

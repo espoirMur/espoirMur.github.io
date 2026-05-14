@@ -10,7 +10,7 @@ Complete guide to planning a traditional wedding in Bukavu, Congo. From venue an
 "
 keywords: "wedding planning Bukavu, traditional Congo wedding, Bashi tribe wedding, wedding budget Congo, how to organize wedding DRC,
 organisation mariage Bukavu, mariage traditionnel Congolais, cérémonie mariage Bashi, guide complet mariage Congo, budget mariage RDC, traditions mariage Kivus, comment organiser un mariage  Congo"
-categories:
+categories: social-life
 
 tags:
 

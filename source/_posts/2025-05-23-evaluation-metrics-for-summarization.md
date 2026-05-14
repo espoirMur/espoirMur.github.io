@@ -6,7 +6,7 @@ date: 2025-05-22
 comments: true
 description: "Evaluation Metrics For Summarization, Reference Free summarization and Reference Summarization, Evaluating GenAI."
 keywords: ""
-categories:
+categories: tech
 
 tags: NLI, Generation, Summarization
 

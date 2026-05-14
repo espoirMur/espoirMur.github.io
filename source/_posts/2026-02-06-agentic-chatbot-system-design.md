@@ -6,7 +6,7 @@ date: 2026-02-05
 comments: true
 description: "A high level design of a customer support chatbot with Agentic AI"
 keywords: ""
-categories:
+categories: tech
 
 tags:
 

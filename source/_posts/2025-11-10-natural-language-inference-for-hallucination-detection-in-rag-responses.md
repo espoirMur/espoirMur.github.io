@@ -6,7 +6,7 @@ date: 2025-11-10
 comments: true
 description: "Natural Language Inference for Hallucination Detection in RAG Responses"
 keywords: "RAG Hallucination detection, Natural Language Inference, NLI for RAG, factuality in LLM, RAG, cross-encoder NLI, hallucination detection methods, LLM evaluation"
-categories:
+categories: tech
 
 tags:
 

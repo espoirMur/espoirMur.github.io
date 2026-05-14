@@ -8,7 +8,7 @@ published: true
 is_draft: false 
 description: "ONNX Runtime, Triton Inference Server, Deploying large language models with Docker, NVIDIA Triton, ONNX model deployment, Machine learning deployment, MLOPS, Deep learning inference"
 keywords: "ONNX Runtime, Triton Inference Server, Deploying large language models with Docker, NVIDIA Triton, ONNX model deployment, Machine learning deployment, MLOPS, Deep learning inference"
-categories:
+categories: tech
 
 tags:
 

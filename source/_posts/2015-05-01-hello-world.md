@@ -4,7 +4,7 @@ date: 2015-05-01T22:12:03.284Z
 layout: post
 description: "Hello World"
 comments: false
-categories: non-tech
+categories: tech
 published: false
 ---
 

@@ -6,7 +6,7 @@ date: 2024-11-06 22:31:32
 comments: true
 description: "Learn how to build a french text clustering using embedding in python"
 keywords: "news summarizer, clustering, French news, DRCongo, machine learning, Python"
-categories:
+categories: tech
 published: true
 is_draft: true
 ---
