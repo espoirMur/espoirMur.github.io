@@ -1,0 +1,19 @@
+---
+layout: pages
+pagination:
+  enabled: true
+  category: education
+title: Education
+permalink: /blog/education/
+---
+
+{% include category-nav.html %}
+
+<section class="post-list">
+{% for post in paginator.posts %}
+  {% if post.is_draft == false %}
+    {% include article.html %}
+  {% endif %}
+{% endfor %}
+{% include pagination.html %}
+</section>

@@ -1,0 +1,7 @@
+<nav class="category-nav">
+  <a href="/blog/" class="category-link{% if page.url == '/blog/' or page.url == '/blog/index.html' %} active{% endif %}">All</a>
+  <a href="/blog/tech/" class="category-link{% if page.url contains '/blog/tech' %} active{% endif %}">Tech</a>
+  <a href="/blog/education/" class="category-link{% if page.url contains '/blog/education' %} active{% endif %}">Education</a>
+  <a href="/blog/politics/" class="category-link{% if page.url contains '/blog/politics' %} active{% endif %}">Politics</a>
+  <a href="/blog/social-life/" class="category-link{% if page.url contains '/blog/social-life' %} active{% endif %}">Social Life</a>
+</nav>

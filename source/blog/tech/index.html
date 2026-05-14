@@ -1,0 +1,20 @@
+---
+layout: pages
+pagination:
+  enabled: true
+  category: tech
+  permalink: /page/:num/
+title: Tech
+permalink: /blog/tech/
+---
+
+{% include category-nav.html %}
+
+<section class="post-list">
+{% for post in paginator.posts %}
+  {% if post.is_draft == false %}
+    {% include article.html %}
+  {% endif %}
+{% endfor %}
+{% include pagination.html %}
+</section>
