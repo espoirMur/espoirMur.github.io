@@ -6,12 +6,12 @@ date: 2025-11-10
 comments: true
 description: "Natural Language Inference for Hallucination Detection in RAG Responses"
 keywords: "RAG Hallucination detection, Natural Language Inference, NLI for RAG, factuality in LLM, RAG, cross-encoder NLI, hallucination detection methods, LLM evaluation"
-categories: tech
+# was: tech
+categories: draft
 
 tags:
 
 published: true
-is_draft: true
 ---
 If you search online for ways to detect RAG response faithfulness, most posts recommend using an 'LLM-as-a-judge' approach. However anyone who has some statistical knowledge will have a doubt about using LLM as a judge to detect faithfulness. How can a model prone to hallucination  detect hallucination? 🤔”
 

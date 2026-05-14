@@ -10,9 +10,9 @@ permalink: /blog/
 
 <section class="post-list">
 {% for post in paginator.posts %}
-  {% if post.is_draft == false %}
+  {% unless post.categories contains 'draft' %}
     {% include article.html %}
-  {% endif %}
+  {% endunless %}
 {% endfor %}
 {% include pagination.html %}
 </section>

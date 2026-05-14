@@ -106,3 +106,30 @@
       background: var(--accent-color)
       color: #fff
       border-color: var(--accent-color)
+
+.category-header
+  margin-bottom: $base-spacing
+  padding: $base-spacing
+  background: var(--bg-color)
+  border-radius: $base-border-radius
+  transition: background-color 0.3s ease
+
+  +media($tablet-small)
+    padding-left: $base-spacing * 2
+
+  p
+    margin: 0
+    font-size: 1em
+    color: var(--text-color)
+    line-height: $base-line-height
+    text-align: left
+    font-weight: $font-weight-light
+
+  &::before
+    content: ''
+    display: block
+    width: 40px
+    height: 3px
+    background: var(--accent-color)
+    margin-bottom: 0.5em
+    border-radius: 2px

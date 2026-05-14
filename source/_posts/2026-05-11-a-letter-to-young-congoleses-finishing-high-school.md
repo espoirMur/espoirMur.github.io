@@ -6,16 +6,17 @@ date: 2026-05-10 18:50:34
 comments: true
 description: "A Letter to Young Congoleses Finishing High School"
 keywords: ""
-categories: education
+# was: education
+categories: draft
 
 tags:
 
 published: true
-is_draft: true
+
 ---
 {% include image.html name="college-alfajiri-cover-image.jpg" caption="The most recent image of College Alfajiri" source="(Picture by Me in July 2025)" %}
 
-C'est la période de l'année où les du secondaire élèves sont entrain de terminer leurs études et de passer leur examens.
+C'est la période de l'année où les élèves  du secondaire sont entrain de terminer leurs études et de passer leur examens.
 
 Je suis très nostalgique. Je me souviens d'avril 2010, trois mois avant le passage de l'examen d'État. Nous étions en retraite au centre Amani et les prêtres commençaient déjà à nous préparer pour les études universitaires.
 

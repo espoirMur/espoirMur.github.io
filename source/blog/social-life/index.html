@@ -1,19 +1,19 @@
 ---
 layout: pages
-pagination:
-  enabled: true
-  category: social-life
 title: Social Life
 permalink: /blog/social-life/
 ---
 
 {% include category-nav.html %}
 
+<div class="category-header">
+  <p>Stuff about weddings, cycling, living in Congo and in the UK goes here.</p>
+</div>
+
 <section class="post-list">
-{% for post in paginator.posts %}
-  {% if post.is_draft == false %}
+{% for post in site.categories.social-life %}
+  {% unless post.categories contains 'draft' %}
     {% include article.html %}
-  {% endif %}
+  {% endunless %}
 {% endfor %}
-{% include pagination.html %}
 </section>

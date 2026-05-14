@@ -1,19 +1,19 @@
 ---
 layout: pages
-pagination:
-  enabled: true
-  category: politics
 title: Politics
 permalink: /blog/politics/
 ---
 
 {% include category-nav.html %}
 
+<div class="category-header">
+  <p>I tried this last year, and I ended up writing two posts about the war in Congo. A bit controversial but I like polemics.</p>
+</div>
+
 <section class="post-list">
-{% for post in paginator.posts %}
-  {% if post.is_draft == false %}
+{% for post in site.categories.politics %}
+  {% unless post.categories contains 'draft' %}
     {% include article.html %}
-  {% endif %}
+  {% endunless %}
 {% endfor %}
-{% include pagination.html %}
 </section>

@@ -1,0 +1,17 @@
+---
+layout: pages
+title: Drafts
+permalink: /blog/drafts/
+---
+
+{% include category-nav.html %}
+
+<div class="category-header">
+  <p>Yes, I am lazy and posting is difficult. These are posts I wrote but they are not finished. Whenever I am drunk enough to get motivation I post stuff here.</p>
+</div>
+
+<section class="post-list">
+{% for post in site.categories.draft %}
+  {% include article.html %}
+{% endfor %}
+</section>

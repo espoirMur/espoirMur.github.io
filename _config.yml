@@ -18,7 +18,7 @@ plugins: [jekyll-paginate-v2, jekyll-seo-tag, match_regex, jekyll-feed, jekyll-s
 
 pagination:
   enabled: true
-  per_page: 5
+  per_page: 7
   permalink: "/page/:num/"
   sort_field: 'date'
   sort_reverse: true

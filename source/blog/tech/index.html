@@ -1,20 +1,19 @@
 ---
 layout: pages
-pagination:
-  enabled: true
-  category: tech
-  permalink: /page/:num/
 title: Tech
 permalink: /blog/tech/
 ---
 
 {% include category-nav.html %}
 
+<div class="category-header">
+  <p>Some tech stuff or anything related to coding, machine learning, software engineering and data science.</p>
+</div>
+
 <section class="post-list">
-{% for post in paginator.posts %}
-  {% if post.is_draft == false %}
+{% for post in site.categories.tech %}
+  {% unless post.categories contains 'draft' %}
     {% include article.html %}
-  {% endif %}
+  {% endunless %}
 {% endfor %}
-{% include pagination.html %}
 </section>
