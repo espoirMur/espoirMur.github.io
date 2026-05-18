@@ -183,7 +183,7 @@ Well, well well .. 4 years, 4 years of conflicts 4 years of poor leadership, 4 y
 
  How Kabila could have handled the situation better after making it to Kinshasa and removing Mobutu from power? 🤔 To be honest I don’t know, I need to read the story of other rebellions to find out how they did it. May be time to read Traore's story and check how is doing it in Burkina. There are misconceptions among the Congolese people were Kabila is seen as a hero, is it a hero? How can someone name a Rwandese as Chief of the army of a country such as Congo? 
 
-On the RCD, Yes Rwanda was the mastermind of that movement and they are responsible for all the atrocities the RCD did. But why did other Congolese who loved their countries accept to be part of this war? One of my uncles who passed away recently worked in Kantima(a south Kivutian governor of south Kivu under RCD). Why did we agree to deal with Rwanda to destroy our country? Those are questions we need to ask ourselves as Congolese.
+On the RCD, Yes Rwanda was the mastermind of that movement and they are responsible for all the atrocities the RCD did. But why did other Congolese who loved their countries accept to be part of this war? One of my uncles who passed away recently worked in Norbert Basengezi Katintima (a south Kivutian governor of south Kivu under RCD). Why did we agree to deal with Rwanda to destroy our country? Those are questions we need to ask ourselves as Congolese.
 
 
 ## Dialogue Inter-Congolais and Accord de Sun City: 2002
