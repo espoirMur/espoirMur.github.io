@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "A Letter to Youngs Congolese Finishing High School"
+title: "A Letter to Young Congolese Finishing High School"
 permalink: a-letter-to-young-congolese-finishing-high-school
 date: 2026-05-10 18:50:34
 comments: true
-description: "A Letter to Young Congoleses Finishing High School"
+description: "Guide for young Congolese students finishing high school. Covers the best fields to study (STEM, medicine, economics) universities in DRC, Rwanda, Kenya and Uganda, and advice on navigating higher education in Africa."
 keywords: ""
 # was: education
-categories: draft
+categories: education
 
 tags:
 
@@ -24,6 +24,10 @@ Je suis très nostalgique. Je me souviens d’avril 2010. Trois mois avant la pa
 Nous avions la chance d’être entourés de gens qui nous faisaient penser à notre avenir et nous aidaient à le préparer. La plupart d’entre nous étions curieux et enthousiastes à l’idée d’entrer à l’université et de mener la nouvelle vie qui nous attendait. Cependant, certains étaient perdus et ne savaient pas quel chemin choisir et beaucoup de nos petits frères, aujourd’hui, n’ont pas la chance que nous avons eue.
 
 Seize années plus tard, je suis ici pour écrire cet article et guider les jeunes congolais qui vont bientôt quitter le secondaire. 
+
+Pour une version Française de ce post veuillez [cliquer ici:]({% link _posts/2026-05-19-une-lettre-a-nos-jeunes-freres-diplome.md %})
+
+Merci a [Nzanzu Lwanzo](https://blog.lwanzo.site/) pour la traduction francaise du post.
 
 _(One honest disclaimer: I can barely write in French anymore. So this is in English. Bear with me.)_
 
@@ -65,7 +69,7 @@ We are in 2026, in the midst of an era where information and knowledge are avail
 
 There are a lot of tools out there that allow you to explore the self-taught route, and I will recommend you go and have a look at them. One of those resources for Computer Science is [Teach Yourself Computer Science](https://teachyourselfcs.com/) and the [Open Source University.](https://github.com/ossu/computer-science)
 
-However, going through those curriculums by yourself requires self-discipline and dedication.
+However, going through those curriculums by yourself requires **self-discipline and dedication**.
 
 Universities offer some advantages:
 
@@ -130,20 +134,20 @@ Don't rush to any degree program that is Labelled Machine Learning or Data Scien
 
 ---
 
-**A note on software engineering:** Many of you have played with ChatGPT and want to become developers or AI Engineers. I understand. But the demand for general software developers has dropped significantly, we've automated a large part of that work. I won't recommend it as a standalone career path. What I _will_ recommend is any field that uses computing as a tool rather than making it the product itself.
+**A note on software development** Many of you have played with ChatGPT and want to become developers or AI Engineers. I understand. But the demand for general software developers has dropped significantly, we've automated a large part of that work. I won't recommend it as a standalone career path. What I _will_ recommend is any field that uses computing as a tool rather than making it the product itself.
 
 
 ### If You Finished in a Non-STEM Track (Commercial, Littéraire, Social)
 
 Don't let anyone convince you that your options are limited. Some of the most successful people I know didn't take a science track they just knew where to direct their energy.
 
-**Computer Science and IT** is still very much on the table for you. The key is mathematics. You don't need to have been the top maths student in school, but you do need to be willing to put in the work to strengthen that foundation. If you can do that, the door is wide open.
+**Computer Science and IT** is still very much on the table for you. The keys are curiosity and passion. You don't need to have been the top maths student in school, but you do need to be willing to put in the work to strengthen that foundation. If you can do that, the door is wide open.
 
 **Economics & Finance** is another strong path. The same rule applies brush up on your maths, and you'll be able to navigate it well.
 
-**Psychology & Mental Health** is a field I want to highlight specifically for us as Congolese. We carry a lot. Trauma, displacement, pressure, grief and we have almost no one trained to help people process it. If you are drawn to understanding people and want to do genuinely meaningful work, this field matters more in our context than almost anywhere else in the world.
+**Psychology & Mental Health** is a field I want to highlight specifically for us as Congolese. We carry a lot. Trauma due to wars and all life pressure and we have almost no one trained to help people process it. If you are drawn to understanding people and want to do genuinely meaningful work, this field matters more in our context than almost anywhere else in the world.
 
-**Entrepreneurship** is less a standalone degree and more a mindset that pairs well with anything else you study. Whether you're studying economics, communication, or agronomy learning how to build, manage, and grow something is one of the most transferable skills you can develop.
+**Entrepreneurship** is less a standalone degree and more a mindset that pairs well with anything else you study. Whether you're studying economics, communication, or agronomy learning how to build, manage, and grow something is one of the most transferable skills you can develop.  But you can go to school to learn this as a skill.
 
 **Communication, Design, and Marketing** are worth taking seriously. In a world where every business, NGO, and movement needs a voice and a visual identity, people who can tell stories, build brands, and understand audiences are in real demand. These aren't backup options  they're legitimate careers.
 
@@ -168,7 +172,7 @@ At home, I know most of you want to go and study abroad. However, if your parent
 
 _The order of universities here is not based on their ranking it just random based on how their name come in my thoughts._
 
-**[UCB](https://ucbukavu.ac.cd/) (Université Catholique de Bukavu)** TThis is my first recommendation for anyone finishing in Bukavu. UCB is genuinely strong particularly in Agronomy, Medicine, Economics, and Architecture. It also has a decent Computer Science program. People will tell you to go abroad but UCB is better than many universities across the region. Don’t sleep on it. Another plus, UCB has many partnerships with universities in Europe such as Belgium and France. If you are smart, you can leverage those opportunities.
+**[UCB](https://ucbukavu.ac.cd/) (Université Catholique de Bukavu)** This is my first recommendation for anyone finishing in Bukavu. UCB is genuinely strong particularly in Agronomy, Medicine, Economics, and Architecture. It also has a decent Computer Science program. People will tell you to go abroad but UCB is better than many universities across the region. Don’t sleep on it. Another plus, UCB has many partnerships with universities in Europe such as Belgium and France. If you are smart, you can leverage those opportunities.
 
 
 **Université Officielle de Bukavu (UOB)** is a good shout for their Geology, Economics, and Public Health program.
@@ -193,7 +197,7 @@ ESI Salama is still a decent university in Lubumbashi. I have interacted with ta
 
 
 
-**[Kinshasa / UNIKIN](https://www.unikin.ac.cd/facultes-et-entites)** UUnless you want to go into politics or you have the resilience to navigate serious institutional dysfunction, be cautious. That said, UNIKIN’s Polytechnics Department, Mathematics and Computer Science has produced some of the country’s finest engineers. If you have the grit, it can work.
+**[Kinshasa / UNIKIN](https://www.unikin.ac.cd/facultes-et-entites)** Unless you want to go into politics or you have the resilience to navigate serious institutional dysfunction, be cautious. That said, UNIKIN’s Polytechnics Department, Mathematics and Computer Science has produced some of the country’s finest engineers. If you have the grit, it can work.
 
 The Architecture and Urban Planning schools there are also worth mentioning. ISAU and IBTP are good shouts.
 

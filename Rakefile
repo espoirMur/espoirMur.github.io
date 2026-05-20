@@ -95,12 +95,11 @@ task :post do
     post.puts "comments: true"
     post.puts "description: \"#{title}\""
     post.puts 'keywords: ""'
-    post.puts "categories:"
+    post.puts "categories: draft"
     post.puts "#{categories}"
     post.puts "tags:"
     post.puts "#{tags}"
-    post.puts "published: false"
-    post.puts "is_draft: false"
+    post.puts "published: true"
     post.puts "---"
   end
 end # task :post
