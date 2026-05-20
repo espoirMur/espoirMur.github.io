@@ -113,7 +113,7 @@ Si vous avez fini dans des sections comme commercial, littéraire ou social, ne 
 
 **Economie et Finances** est un chemin valable. La même règle s’applique : révisez, enrichissez vos notions de maths et vous vous en sortirez assez bien.
 
-**Psychologie et santé mentale** : c’est un domaine sur lequel j’aimerais insister pour nous, congolais. Durant notre histoire en tant que nation nous sommes passées par beaucoup d'evenment(guerre, stree, traumatisme) et nous n’avons presque personne qui a été formé pour nous aider à guérir. Si vous êtes attirés par la compréhension de l’homme et voulez faire un travail qui a vraiment du sens, ce domaine compte beaucoup plus dans notre contexte que partout ailleurs sur terre.
+**Psychologie et santé mentale** : c’est un domaine sur lequel j’aimerais insister pour nous, congolais. Durant notre histoire en tant que nation nous sommes passées par beaucoup d'evenment(guerre, strees, traumatisme) et nous n’avons presque personne qui a été formé pour nous aider à guérir. Si vous êtes attirés par la compréhension de l’homme et voulez faire un travail qui a vraiment du sens, ce domaine compte beaucoup plus dans notre contexte que partout ailleurs sur terre.
 
 **L’entrepreneuriat** est moins un domaine universitaire en soi, mais plus une mentalité qui va très bien avec tout ce que vous pouvez étudier. Que ce soit l’économie, la communication ou l’agronomie, apprendre comment construire, gérer ou développer quelque chose est l’un des compétences les plus transférables que vous puissiez acquérir. 
 
@@ -169,7 +169,7 @@ Une astuce pour ceux qui étudient au Congo : notre cursus en français est robu
 ### 🇷🇼 Rwanda
 
 
-**ALU ([African Leadership University](https://www.alueducation.com/))  Kigali**: la meilleure recommandation que je puisse faire dans la région, en dehors du Congo. ALU a un modèle éducatif distinctif bâti autour d’une application au monde réel, le leadership et des opportunités d’étude à l’étranger. Je connais des diplômés qui ont fait des stages chez Google et Bloomberg à Londres. Ils offrent des programmes d’informatique, entrepreneuriat et économie. Les frais sont autour de 3000$/mois mais les bourses peuvent ramener la somme à 1500$/mois et vous préparent à un master à [CMU Africa](cmu.africa). Oubliez la politique et les conflits entre la RDC et le Rwanda, et allez obtenir votre diplôme là-bas. Alternativement, ils ont un campus sur l’île Maurice. Pensez-y également !
+**ALU ([African Leadership University](https://www.alueducation.com/))  Kigali**: la meilleure recommandation que je puisse faire dans la région, en dehors du Congo. ALU a un modèle éducatif distinctif bâti autour d’une application au monde réel, le leadership et des opportunités d’étude à l’étranger. Je connais des diplômés qui ont fait des stages chez Google et Bloomberg à Londres. Ils offrent des programmes d’informatique, entrepreneuriat et économie. Les frais sont autour de 3000$/an mais les bourses peuvent ramener la somme à 1500$/an et vous préparent à un master à [CMU Africa](cmu.africa). Oubliez la politique et les conflits entre la RDC et le Rwanda, et allez obtenir votre diplôme là-bas. Alternativement, ils ont un campus sur l’île Maurice. Pensez-y également !
 
 **AUCA ([Adventist University of Central Africa](https://auca.ac.rw/))**  est une option solide, particulièrement en informatique. Une bonne valeur.
 
@@ -180,10 +180,15 @@ Une astuce pour ceux qui étudient au Congo : notre cursus en français est robu
 ---
 
 ### 🇰🇪 Kenya
-**[Strathmore University](https://strathmore.edu/) :  Nairobi** : Un diplôme de cette université ouvre de vraies portes.  Elle est respectée à travers toute l’Afrique et au-delà. Les frais sont de 4000$/mois et vivre à Nairobi est cher. Donc, tenez cela en compte. Mais la qualité et le réseau en valent la peine.
+**[Strathmore University](https://strathmore.edu/) :  Nairobi** : Un diplôme de cette université ouvre de vraies portes.  Elle est respectée à travers toute l’Afrique et au-delà. Les frais sont de 4000$/an et vivre à Nairobi est cher. Donc, tenez cela en compte. Mais la qualité et le réseau en valent la peine.
+
 **Universités publiques** : JKUAT, Dedan Kimathi University, and University of Nairobi ont toutes des programmes d’ingénierie et d’informatique à faible coût.
+
 **Universités privées** La plupart sont des business dans le vrai sens du terme. Faites prudemment vos recherches avant de vous décider.
 Mais, de tous les pays cités en Afrique de L’Est, le Kenya est le meilleur que je puisse recommander si vous pouvez vous permettre d’y vivre.
+
+---
+
 ### 🇺🇬 Uganda
 [**Makerere University**](https://mak.ac.ug/)  : historiquement, l’une des meilleures universités en Afrique. Très difficile d’accès aux étrangers mais pas impossible.
 
@@ -209,4 +214,4 @@ Où que vous étudiez (UCB, ALU, Strathmore, etc.) votre limite est principaleme
 Le Congo vous a donné plus que vous ne pouvez imaginer. A vous d’en faire quelque chose !
 
 
-Ceci est une version Francaise de ce [post]({% link _posts/2026-05-11-a-letter-to-young-congoleses-finishing-high-school.md%}) traduit par [Nzanzu Lwanzo](https://blog.lwanzo.site/).
+Ceci est une version Francaise de ce [post]({% link _posts/2026-05-11-a-letter-to-young-congoleses-finishing-high-school.md%}) traduite par [Nzanzu Lwanzo](https://blog.lwanzo.site/).
