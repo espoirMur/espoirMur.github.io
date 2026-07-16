@@ -4,8 +4,8 @@ title: "DRCongo Post World Cup Reflections: Who do we really owe our World Cup s
 permalink: drcongo-post-world-cup-reflections-who-do-we-really-owe-our-world-cup-to
 date: 2026-07-15 02:04:56
 comments: true
-description: "DRCongo Post World Cup Reflections: Who do we really owe our World Cup to?"
-keywords: ""
+description: "A data-driven critique of DR Congo's 2026 World Cup run. Why relying on diaspora talent is a short-term trap, and why FECOFA must rebuild the local pipeline to stay at the top."
+keywords: [DR Congo 2026 World Cup, Les Leopards, FECOFA youth development, Congolese homegrown talent, CAF World Cup expansion, bi-nationaux DRC]
 categories: politics
 
 tags:
