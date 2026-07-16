@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "DRCongo Post World Cup Reflections: Who do we really owe our World Cup to?"
+title: "DRCongo Post World Cup Reflections: Who do we really owe our World Cup success to?"
 permalink: drcongo-post-world-cup-reflections-who-do-we-really-owe-our-world-cup-to
 date: 2026-07-15 02:04:56
 comments: true
@@ -19,7 +19,7 @@ As the World Cup wraps up, there is a reflection that has been sitting in my hea
 
 Congo had an amazing tournament. For our second-ever participation, we exceeded expectations. No 9-0 humiliation, no drama about unpaid bonuses, none of that. And one sentence has been echoing across the internet and among politicians in Kinshasa: **_"Fatshi nous a envoyé à la deuxième coupe du monde."_**
 
-I want to push back on that not to attack anyone, but because I think the truth is more interesting. We do **not** owe this World Cup to the government alone. We owe it to three things: a decent eleven-year run of football, CAF expanding Africa's slots, and yes, government logistics. And of those three, the government's contribution is the real one but also the easiest. The factor that will actually decide the next ten years is the one nobody in Kinshasa is celebrating: **local talent development** and the data says we are last in among the 10 countries Africa send to the World Cup.
+I want to push back on that not to attack anyone, but because I think the truth is more interesting. We do **not** owe this World Cup to the government alone. We owe it to three things: a decent eleven-year run of football, CAF expanding Africa's slots, and yes, government logistics. And of those three, the government's contribution is the real one but also the easiest. The factor that will actually decide the next ten years is the one nobody in Kinshasa is celebrating: **local talent development** and the data says we are last among the 10 countries Africa send to the World Cup.
 
 > A quick note on intent: this is not government-bashing. I write it as a normal citizen who wants to hold his country to a higher standard. That is the whole point.
 
@@ -93,7 +93,7 @@ Egypt and South Africa build almost their entire team at home. We build almost n
 
 ### We also detect talent the latest
 
-It gets worse. Not only do we develop the fewest players locally, we also bring players into the senior team the **latest**. Whether they were trained locally, or the come from the diaspora, the median age at first senior call-up for our squad is **25.3 years, the oldest of all ten teams** (Ivory Coast and Senegal are youngest at 21.5).
+It gets worse. Not only do we develop the fewest players locally, we also bring players into the senior team the **latest**. Whether they were trained locally, or they come from the diaspora, the median age at first senior call-up for our squad is **25.3 years, the oldest of all ten teams** (Ivory Coast and Senegal are youngest at 21.5).
 
 
 {% include image.html name="age-at-debut.png" caption="Early Talent Detection percentage of players that debuted before 21, and median debut age." source="My analysis with Data from https://www.transfermarkt.com/" %}
@@ -106,7 +106,7 @@ If we want to be a top-2 or top-3 side on the continent to win an AFCON and reac
 
 1.**Build talent locally.** We have a huge young population but lack the infrastructure and organization to train it. Academies, coaching, competitions this is the foundation, and it is the part we are worst at.
 
-A country should not spend 16 millions USD in sponsorship deals with european teams(Monaco 4 Millions and Barcelona 10 Millions) while it doesn't have a local championship or any youth competition.
+A country should not spend 16 millions USD in sponsorship deals with european teams(Monaco 4 Millions Euros and Barcelona 10 Millions Euros) while it doesn't have a local championship or any youth competition.
 
 A couple of year ago when we had a strong local championship and we saw the results: 
 - 2 African Championship trophies (2009, and 2016).
