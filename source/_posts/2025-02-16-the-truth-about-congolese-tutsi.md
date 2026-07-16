@@ -87,9 +87,7 @@ Despite the fact that they are considered as Congolese today, there been time wh
 
 # Conclusion
 
-Even though we have given them Congolese nationality, most of them have never detached themselves from their country of origin, Rwanda. They still have cousins there, and it is very hard to differentiate Tutsi from North Kivu from their cousins in Rwanda, because the land they share in Congo is close to Rwanda, and they have always had tight ties with Kagame.
-
-Kagame used them to attack Congo and to provide an army to militants who wanted to invade Congo.
+While many Congolese Tutsi civilians simply want to live in peace as Congolese citizens, Kigali has repeatedly exploited ethnic ties, using specific local proxy groups and elites to destabilize the region
 
 In my next post, I will discuss the involvement of the Banyamulenge and other Tutsi from North Kivu in different wars in Congo. Then I will share how Kabila, the former Congolese president, integrated them into the army, and how Kagame used them again in the two M23 movements. I will also share information about the discrimination they claim to be victims of.
 

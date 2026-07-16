@@ -44,7 +44,7 @@ Some Congolese authors [Cite *La Guerre de l'EST*] said that under his influence
 It stated that everyone who could prove that they were living in the Kivu province before **1950** was granted the Zairean (Congolese) nationality on the 30th of June 1960. You can read that law [here](https://www.refworld.org/legal/legislation/natlegbod/1972/fr/19407) [Cite: Loi n° 1972-002 du 5 janvier 1972 relative à la nationalité zaïroise].
 
 
-Here are some except of that law in French:
+Here are some excerpts of that law in French:
 
 > 5.Des originaires du Ruanda-Urundi établis dans la province du Kivu.
 
@@ -129,7 +129,7 @@ A few years after he took power, Laurent-Désiré Kabila radicalized himself and
 This is when the first radicalization against Tutsi started in Western Congo. It is when people in the streets of Kinshasa started killing everyone who was speaking Kinyarwanda and who morphologically looked like a Tutsi. [Cite the book *Africa's World War*, reference 17] said that hundreds of Tutsi were arrested and dozens were killed.
 
 ### My thoughts on the war
-Should we blame only Tutsi and Rwandse for the AFDL rebellion? Was taking the arms the only option Banyamulenge had to defend themselves? Why are they one of the few tribe in Congo who usually take arms to defend their identity? 🤔
+Should we blame only Tutsi and Rwandese for the AFDL rebellion? Was taking the arms the only option Banyamulenge had to defend themselves? Why are they one of the few tribe in Congo who usually take arms to defend their identity? 🤔
 
 By analyzing the historical facts, this war was not fought by the Tutsi themselves. 
 
