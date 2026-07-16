@@ -47,7 +47,7 @@ Most of the time,  when we discuss the history of Tutsi in Congo. People tend to
 
 However,  in the region banyamulenge are people from Mulenge in South Kivu. In this post, I will split Tutsi into two groups: the Banyamulenge, or Tutsi from South Kivu, and Tutsi from North Kivu, Masisi, and Rutshuru.
 
-Charles Onana in his book about the genocide in Congo all Congolese Tutsi Banyamulenge! According to the definition and the origin of the world Banyamulenge that can be truth but today in Congo we call Banyamulenge mostly people who lived in the Mulenge Mountain in South Kivu.
+Charles Onana in his book about the genocide in Congo all Congolese Tutsi Banyamulenge! According to the definition and the origin of the world Banyamulenge that cannot be truth but today in Congo we call Banyamulenge mostly people who lived in the Mulenge Mountain in South Kivu.
 
 # Who are Banyamulenge?
 
@@ -59,7 +59,7 @@ The Banyamulenge come from *Banya-murenge*, but as Rwandese and people speaking 
 
 # Their origin
 
-The first Tutsi to migrate to Congo are what we call Banyamulenge. They came mostly from Rwanda and went to settle with their cows in the Ruzizi mountains in South Kivu. It was after their migration to the mountains in South Kivu that the region became known as Mulenge. This is why today people think Banyamulenge means "people from Mulenge." [Cite: Dupont et al., Conflict in Kivu.]
+The first Tutsi to migrate to Congo are those we call Banyamulenge. They came mostly from Rwanda and went to settle with their cows in the Ruzizi mountains in South Kivu. It was after their migration to the mountains in South Kivu that the region became known as Mulenge. This is why today people think Banyamulenge means "people from Mulenge." [Cite: Dupont et al., Conflict in Kivu.]
 
 There is a lot of speculation about when they first arrived in Congo. Some people say they were there between the 17th and early 19th century! [Weis, G. 1958. _Le pays d’Uvira, étude de géographie régionale sur la bordure occidentale du lac Tanganyika._ Bruxelles: ARSC. Pg 168.] [read the book from here](https://www.kaowarsom.be/documents/MEMOIRES_VERHANDELINGEN/Sciences_naturelles_medicales/Nat.Sc.(NS)_T.VIII,5_WEIS,%20G._Le%20pays%20d'Uvira.%20Etude%20de%20g%C3%A9ographie%20r%C3%A9gionale%20sur%20la%20bordure%20occidentale%20du%20lac%20Tanganika_1959.PDF)
 
@@ -67,11 +67,11 @@ Regardless of the exact time they arrived, it is true that they were in the Ruzi
 
 A second group of Tutsi and Hutu came around 1940, more precisely around 1944. They were brought by the Belgians because they needed farmers who understood the mountains. These groups settled in the Masisi mountains in North Kivu, near Masisi and Rutshuru. [Cite: The Role of Zaire in the Rwandan Conflict.]
 
-There is a third group that arrived in 1958 due to the conflict between Hutu and Tutsi in Rwanda in 1959, and others came again in 1962 at the time of Rwandan independence. [Cite: Zairian and Rwandan Conflict Book.]
+There is a third group who arrived in 1958 due to the conflict between Hutu and Tutsi in Rwanda in 1959, and others came again in 1962 at the time of Rwandan independence. [Cite: Zairian and Rwandan Conflict Book.]
 
 Those are the reference about Tutsi migration that happened before independence!
 
-There are other claims that says that there are other group that come in 1970s and other after the Rwandan war, and other that come in Congo after the Genocide in 1994.
+There are other claims that says that there are other group who come in 1970s and other after the Rwandan war, and other that come in Congo after the Genocide in 1994.
 
 # Are they Congolese?
 

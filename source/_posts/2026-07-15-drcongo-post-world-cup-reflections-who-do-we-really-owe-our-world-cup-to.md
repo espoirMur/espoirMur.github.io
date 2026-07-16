@@ -6,7 +6,7 @@ date: 2026-07-15 02:04:56
 comments: true
 description: "DRCongo Post World Cup Reflections: Who do we really owe our World Cup to?"
 keywords: ""
-categories: draft
+categories: politics
 
 tags:
 
