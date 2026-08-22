@@ -61,7 +61,11 @@ The Banyamulenge come from *Banya-murenge*, but as Rwandese and people speaking 
 
 The first Tutsi to migrate to Congo are those we call Banyamulenge. They came mostly from Rwanda and went to settle with their cows in the Ruzizi mountains in South Kivu. It was after their migration to the mountains in South Kivu that the region became known as Mulenge. This is why today people think Banyamulenge means "people from Mulenge." [Cite: Dupont et al., Conflict in Kivu.]
 
-There is a lot of speculation about when they first arrived in Congo. Some people say they were there between the 17th and early 19th century! [Weis, G. 1958. _Le pays d’Uvira, étude de géographie régionale sur la bordure occidentale du lac Tanganyika._ Bruxelles: ARSC. Pg 168.] [read the book from here](https://www.kaowarsom.be/documents/MEMOIRES_VERHANDELINGEN/Sciences_naturelles_medicales/Nat.Sc.(NS)_T.VIII,5_WEIS,%20G._Le%20pays%20d'Uvira.%20Etude%20de%20g%C3%A9ographie%20r%C3%A9gionale%20sur%20la%20bordure%20occidentale%20du%20lac%20Tanganika_1959.PDF)
+There is a lot of speculation about when they first arrived in Congo. Some people say they were there between the 17th and early 19th century! [Weis, G. 1958. _Le pays d’Uvira, étude de géographie régionale sur la bordure occidentale du lac Tanganyika._ Bruxelles: ARSC. Pg 148.] [read the book from here](https://www.kaowarsom.be/documents/MEMOIRES_VERHANDELINGEN/Sciences_naturelles_medicales/Nat.Sc.(NS)_T.VIII,5_WEIS,%20G._Le%20pays%20d'Uvira.%20Etude%20de%20g%C3%A9ographie%20r%C3%A9gionale%20sur%20la%20bordure%20occidentale%20du%20lac%20Tanganika_1959.PDF)
+
+{% include image.html name="origines-tutsi-congo.png" caption="Text Showing when th Rwanda Came to Congo" source="Le Pays D'Uvira" %}
+
+
 
 Regardless of the exact time they arrived, it is true that they were in the Ruzizi region before independence in 1960.
 
